@@ -1,5 +1,6 @@
 import * as Pixi from "pixi.js";
 import Setting from "../activity/base/Setting";
+import DecoScene from "./scene/DecoScene";
 
 export default class PixiApp extends Pixi.Application {
   constructor(canvas: HTMLCanvasElement) {
@@ -21,11 +22,8 @@ export default class PixiApp extends Pixi.Application {
     );
   }
 
-  drawRectangle() {
-    const rectangle = new Pixi.Graphics();
-    rectangle.beginFill(0xffffff);
-    rectangle.drawRect(50, 50, 100, 100);
-    rectangle.endFill();
-    this.stage.addChild(rectangle);
+  sceneStart() {
+    const scene = new DecoScene();
+    this.stage.addChild(scene);
   }
 }

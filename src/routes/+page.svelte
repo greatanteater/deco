@@ -7,7 +7,7 @@
   onMount(() => {
     console.log("onMounted");
     const pixiApp = new PixiApp(canvas);
-	pixiApp.drawRectangle();
+	pixiApp.sceneStart();
   });
 </script>
 
