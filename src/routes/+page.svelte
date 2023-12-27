@@ -3,11 +3,11 @@
   import PixiApp from "../activity/PixiApp";
 
   let canvas: HTMLCanvasElement;
-  let pixiApp: PixiApp;
 
-  onMount(async () => {
+  onMount(() => {
     console.log("onMounted");
-    pixiApp = new PixiApp(canvas);
+    const pixiApp = new PixiApp(canvas);
+	pixiApp.drawRectangle();
   });
 </script>
 

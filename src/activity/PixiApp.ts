@@ -19,7 +19,6 @@ export default class PixiApp extends Pixi.Application {
       },
       false
     );
-    this.drawRectangle();
   }
 
   drawRectangle() {
