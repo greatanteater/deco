@@ -1,6 +1,14 @@
-<script>
-  import welcome from "$lib/images/svelte-welcome.webp";
-  import welcome_fallback from "$lib/images/svelte-welcome.png";
+<script lang="ts">
+  import { onMount } from "svelte";
+  import PixiApp from "../activity/PixiApp";
+
+  let canvas: HTMLCanvasElement;
+  let pixiApp: PixiApp;
+
+  onMount(async () => {
+    console.log("onMounted");
+    pixiApp = new PixiApp(canvas);
+  });
 </script>
 
 <svelte:head>
@@ -8,7 +16,7 @@
   <meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<canvas id="canvas"></canvas>
+<canvas bind:this={canvas} id="canvas"></canvas>
 
 <style>
   #canvas {

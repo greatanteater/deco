@@ -1,6 +1,3 @@
-<script>
-</script>
-
 <div id="app">
   <main>
     <slot />
