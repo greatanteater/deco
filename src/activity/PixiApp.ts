@@ -1,9 +1,9 @@
 import * as Pixi from "pixi.js";
 import Setting from "../activity/base/Setting";
-import DecoScene from "./scene/DecoScene";
+import DecoMain from "./scene/DecoMain";
 
 export default class PixiApp extends Pixi.Application {
-  private currentScene: DecoScene | null = null;
+  private currentScene: DecoMain | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     super({
@@ -25,7 +25,7 @@ export default class PixiApp extends Pixi.Application {
   }
 
   public startScene() {
-    this.currentScene = new DecoScene();
+    this.currentScene = new DecoMain();
     this.stage.addChild(this.currentScene);
   }
 
