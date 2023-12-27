@@ -7,7 +7,11 @@
   onMount(() => {
     console.log("onMounted");
     const pixiApp = new PixiApp(canvas);
-	pixiApp.sceneStart();
+	pixiApp.startScene();
+
+	return () => {
+        pixiApp.closeScene();
+    };
   });
 </script>
 

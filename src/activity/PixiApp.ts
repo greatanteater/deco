@@ -3,6 +3,8 @@ import Setting from "../activity/base/Setting";
 import DecoScene from "./scene/DecoScene";
 
 export default class PixiApp extends Pixi.Application {
+  private currentScene: DecoScene | null = null;
+
   constructor(canvas: HTMLCanvasElement) {
     super({
       width: Setting.sceneWidth,
@@ -22,8 +24,16 @@ export default class PixiApp extends Pixi.Application {
     );
   }
 
-  sceneStart() {
-    const scene = new DecoScene();
-    this.stage.addChild(scene);
+  public startScene() {
+    this.currentScene = new DecoScene();
+    this.stage.addChild(this.currentScene);
+  }
+
+  public closeScene() {
+    if (this.currentScene) {
+        this.stage.removeChild(this.currentScene);
+        this.currentScene.destroy();
+        this.currentScene = null;
+    }
   }
 }
