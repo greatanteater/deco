@@ -5,9 +5,8 @@
   let canvas: HTMLCanvasElement;
 
   onMount(() => {
-    console.log("onMounted");
+    console.log('마운트가 되었삼');
     const pixiApp = new PixiApp(canvas);
-	pixiApp.startScene();
 
 	return () => {
         pixiApp.closeScene();

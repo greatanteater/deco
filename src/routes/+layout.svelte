@@ -11,7 +11,6 @@
     width: 1300px;
     height: 780px;
     position: absolute;
-	background-color: aqua;
   }
 
   main {
