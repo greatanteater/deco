@@ -1,12 +1,13 @@
 import * as Pixi from "pixi.js";
 import Setting from "../base/Setting";
+import { wait } from "../util/Util";
 import { activityState } from "../store/store";
-import { gsap } from 'gsap';
+import { gsap } from "gsap";
 
 export default class DecoMain extends Pixi.Container {
   private backgroundSprite: Pixi.Sprite | null = null;
-  private char1Sprite: Pixi.Sprite | null = null;
-  private char2Sprite: Pixi.Sprite | null = null;
+  private mirrorSprite: Pixi.Sprite | null = null;
+  private charSprites: Pixi.Sprite[] = [];
   private fxaaFilter: Pixi.Filter | null = null;
 
   constructor() {
@@ -24,47 +25,58 @@ export default class DecoMain extends Pixi.Container {
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
+
+    this.mirrorSprite = Pixi.Sprite.from("images/main/great.png");
+    this.mirrorSprite.width = 270;
+    this.mirrorSprite.height = 500;
+    this.mirrorSprite.anchor.set(0.5);
+    this.mirrorSprite.position.set(Setting.sceneWidth / 2, 500);
+    this.addChild(this.mirrorSprite);
   }
 
   private setChars() {
-    this.char1Sprite = Pixi.Sprite.from("images/main/char1.png");
-    this.char1Sprite.width = 300;
-    this.char1Sprite.height = 400;
-    this.char1Sprite.anchor.set(0.5);
-    this.char1Sprite.position.set(300, 400);
-    this.char1Sprite.eventMode = "static";
-    this.char1Sprite.cursor = "pointer";
-    this.char1Sprite.on("pointerdown", async () => {
-      await this.zoomIn();
-      activityState.update(() => ({ currentView: "scene", charNumber: 0 }));
-    });
-    this.addChild(this.char1Sprite);
+    this.charSprites = [];
 
-    this.char2Sprite = Pixi.Sprite.from("images/main/char2.png");
-    this.char2Sprite.width = 300;
-    this.char2Sprite.height = 400;
-    this.char2Sprite.anchor.set(0.5);
-    this.char2Sprite.position.set(900, 400);
-    this.char2Sprite.eventMode = "static";
-    this.char2Sprite.cursor = "pointer";
-    this.char2Sprite.on("pointerdown", async () => {
-      await this.zoomIn();
-      activityState.update(() => ({ currentView: "scene", charNumber: 1 }));
-    });
-    this.addChild(this.char2Sprite);
+    const charData = [
+      {
+        imagePath: "images/main/char1.png",
+        position: { x: 300, y: 400 },
+        charNumber: 0,
+      },
+      {
+        imagePath: "images/main/char2.png",
+        position: { x: 1000, y: 400 },
+        charNumber: 1,
+      },
+    ];
+
+    for (const { imagePath, position, charNumber } of charData) {
+      const sprite = Pixi.Sprite.from(imagePath);
+
+      sprite.width = 300;
+      sprite.height = 400;
+      sprite.anchor.set(0.5);
+      sprite.position.set(position.x, position.y);
+      sprite.eventMode = "static";
+      sprite.cursor = "pointer";
+      sprite.on("pointerdown", async () => {
+        await this.zoomIn();
+        activityState.update(() => ({ currentView: "scene", charNumber }));
+      });
+
+      this.addChild(sprite);
+      this.charSprites.push(sprite);
+    }
   }
 
   private async zoomIn() {
-    this.fxaaFilter = new Pixi.FXAAFilter();
-    this.filters = [this.fxaaFilter];
+    // this.fxaaFilter = new Pixi.FXAAFilter();
+    // this.filters = [this.fxaaFilter];
     this.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2 + 100);
     this.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2 + 100);
-    const zoomIn = gsap.to(this.scale, { x: 3, y: 3, duration: 1 });
+    const zoomIn = gsap.to(this.scale, { x: 4, y: 4, duration: 1 });
     await zoomIn;
     zoomIn.kill();
-    const fadeIn = gsap.to(this, { alpha: 0, duration: 0.5 });
-    await fadeIn;
-    fadeIn.kill();
   }
 
   private destroyBack() {
@@ -72,17 +84,17 @@ export default class DecoMain extends Pixi.Container {
       this.backgroundSprite.destroy();
       this.backgroundSprite = null;
     }
+    if (this.mirrorSprite) {
+      this.mirrorSprite.destroy();
+      this.mirrorSprite = null;
+    }
   }
 
   private destroyChar() {
-    if (this.char1Sprite) {
-      this.char1Sprite.destroy();
-      this.char1Sprite = null;
+    for (const sprite of this.charSprites) {
+      sprite.destroy();
     }
-    if (this.char2Sprite) {
-      this.char2Sprite.destroy();
-      this.char2Sprite = null;
-    }
+    this.charSprites = [];
   }
 
   private destroyFilter() {
