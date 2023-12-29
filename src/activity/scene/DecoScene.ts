@@ -1,5 +1,6 @@
 import * as Pixi from "pixi.js";
 import Setting from "../base/Setting";
+import { wait } from "../util/Util";
 import { get } from "svelte/store";
 import { activityState } from "../store/store";
 import { gsap } from "gsap";
@@ -17,6 +18,7 @@ export default class DecoScene extends Pixi.Container {
   private rightButtonSprite: Pixi.Sprite | null = null;
   private currentView: string | null = null;
   private charNumber = 0;
+  private faceMoving = false;
 
   constructor() {
     super();
@@ -50,7 +52,7 @@ export default class DecoScene extends Pixi.Container {
     this.setBackground();
     this.setButton();
     this.setFaces();
-    this.setFacesPosition();
+    this.setFacesPosition("default");
   }
 
   private async fadeIn() {
@@ -88,7 +90,9 @@ export default class DecoScene extends Pixi.Container {
     this.leftButtonSprite.eventMode = "static";
     this.leftButtonSprite.cursor = "pointer";
     this.leftButtonSprite.on("pointerdown", () => {
-      this.charNumber = this.charNumber === 0 ? 1 : 0;
+      if (!this.faceMoving) {
+        this.setFacesPosition("left");
+      }
     });
     this.addChild(this.leftButtonSprite);
 
@@ -100,7 +104,9 @@ export default class DecoScene extends Pixi.Container {
     this.rightButtonSprite.eventMode = "static";
     this.rightButtonSprite.cursor = "pointer";
     this.rightButtonSprite.on("pointerdown", () => {
-      this.charNumber = this.charNumber === 0 ? 1 : 0;
+      if (!this.faceMoving) {
+        this.setFacesPosition("right");
+      }
     });
     this.addChild(this.rightButtonSprite);
   }
@@ -128,15 +134,89 @@ export default class DecoScene extends Pixi.Container {
       sprite.position.set(position.x, position.y);
       this.addChild(sprite);
 
-      const face: Face = { sprite, charNumber }; // Here
-      this.faces.push(face); // And here
+      const face: Face = { sprite, charNumber };
+      this.faces.push(face);
     }
   }
 
-  private setFacesPosition() {
-    for (const face of this.faces) {
-      if (face.charNumber === this.charNumber) {
-        face.sprite.position.set(Setting.sceneWidth / 2, 500);
+  private async setFacesPosition(direction: string) {
+    this.faceMoveEnable(true);
+
+    if (direction === "right") {
+      const previousCharNumber = this.charNumber;
+      this.charNumber = this.charNumber - 1;
+      if (this.charNumber < 0) {
+        this.charNumber = this.faces.length - 1;
+      }
+      for (const face of this.faces) {
+        if (face.charNumber === previousCharNumber) {
+          gsap.to(face.sprite.position, {
+            x: Setting.sceneWidth / 2 + Setting.sceneWidth,
+            y: 500,
+            duration: 1,
+          });
+        } else if (face.charNumber === this.charNumber) {
+          face.sprite.position.set(
+            Setting.sceneWidth / 2 - Setting.sceneWidth,
+            500
+          );
+          gsap.to(face.sprite.position, {
+            x: Setting.sceneWidth / 2,
+            y: 500,
+            duration: 1,
+          });
+        }
+      }
+      await wait(1000);
+      this.faceMoveEnable(false);
+    } else if (direction === "left") {
+      const previousCharNumber = this.charNumber;
+      this.charNumber = this.charNumber + 1;
+      if (this.charNumber >= this.faces.length) {
+        this.charNumber = 0;
+      }
+      for (const face of this.faces) {
+        if (face.charNumber === previousCharNumber) {
+          gsap.to(face.sprite.position, {
+            x: Setting.sceneWidth / 2 - Setting.sceneWidth,
+            y: 500,
+            duration: 1,
+          });
+        }
+        if (face.charNumber === this.charNumber) {
+          face.sprite.position.set(
+            Setting.sceneWidth / 2 + Setting.sceneWidth,
+            500
+          );
+          gsap.to(face.sprite.position, {
+            x: Setting.sceneWidth / 2,
+            y: 500,
+            duration: 1,
+          });
+        }
+      }
+      await wait(1000);
+      this.faceMoveEnable(false);
+    } else if (direction === "default") {
+      for (const face of this.faces) {
+        if (face.charNumber === this.charNumber) {
+          face.sprite.position.set(Setting.sceneWidth / 2, 500);
+        }
+      }
+      this.faceMoveEnable(false);
+    }
+  }
+
+  private faceMoveEnable(enable: boolean) {
+    if (this.leftButtonSprite && this.rightButtonSprite) {
+      if (enable) {
+        this.faceMoving = true;
+        this.leftButtonSprite.alpha = 0.5;
+        this.rightButtonSprite.alpha = 0.5;
+      } else {
+        this.faceMoving = false;
+        this.leftButtonSprite.alpha = 1;
+        this.rightButtonSprite.alpha = 1;
       }
     }
   }
