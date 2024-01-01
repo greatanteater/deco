@@ -1,6 +1,4 @@
 import { writable } from "svelte/store";
 
-export const activityState = writable({
-  currentView: "main",
-  charNumber: 0,
-});
+export const currentView = writable("main");
+export const characterNumber = writable(0);

@@ -2,7 +2,7 @@ import * as Pixi from "pixi.js";
 import * as PixiSound from "@pixi/sound";
 import Setting from "../base/Setting";
 import { wait } from "../util/Util";
-import { activityState } from "../store/store";
+import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 
 export default class DecoMain extends Pixi.Container {
@@ -69,7 +69,8 @@ export default class DecoMain extends Pixi.Container {
       sprite.cursor = "pointer";
       sprite.on("pointerdown", async () => {
         await this.zoomIn();
-        activityState.update(() => ({ currentView: "scene", charNumber }));
+        currentView.set("scene");
+        characterNumber.set(charNumber);
       });
 
       this.addChild(sprite);
@@ -114,6 +115,7 @@ export default class DecoMain extends Pixi.Container {
 
   private destroySound() {
     if (this.startSound) {
+      this.startSound.stop();
       this.startSound.destroy();
       this.startSound = null;
     }
@@ -124,7 +126,7 @@ export default class DecoMain extends Pixi.Container {
     this.destroyBack();
     this.destroyFilter();
     this.filters = [];
-    this.destroySound()
+    this.destroySound();
     super.destroy();
   }
 }

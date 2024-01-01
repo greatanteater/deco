@@ -2,7 +2,7 @@ import * as Pixi from "pixi.js";
 import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { get } from "svelte/store";
-import { activityState } from "../store/store";
+import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 
 interface Face {
@@ -24,7 +24,6 @@ export default class DecoScene extends Pixi.Container {
     super();
     this.loadStore();
     this.initialize();
-    this.registerEvents();
   }
 
   private async initialize() {
@@ -32,20 +31,13 @@ export default class DecoScene extends Pixi.Container {
     await this.fadeIn();
   }
 
-  private registerEvents() {
-    activityState.subscribe(({ charNumber }) => {});
-  }
-
   private loadStore() {
-    this.currentView = get(activityState).currentView;
-    this.charNumber = get(activityState).charNumber;
+    this.currentView = get(currentView);
+    this.charNumber = get(characterNumber);
   }
 
   private saveStore() {
-    activityState.update((current) => ({
-      ...current,
-      charNumber: this.charNumber,
-    }));
+    characterNumber.set(this.charNumber);
   }
 
   private runScene() {
@@ -78,7 +70,7 @@ export default class DecoScene extends Pixi.Container {
     this.backButtonSprite.eventMode = "static";
     this.backButtonSprite.cursor = "pointer";
     this.backButtonSprite.on("pointerdown", () => {
-      activityState.update((current) => ({ ...current, currentView: "main" }));
+      currentView.set("main");
     });
     this.addChild(this.backButtonSprite);
 
@@ -228,6 +220,23 @@ export default class DecoScene extends Pixi.Container {
     }
   }
 
+  private destroyButton() {
+    if (this.backButtonSprite) {
+      this.backButtonSprite.destroy();
+      this.backButtonSprite = null;
+    }
+
+    if (this.leftButtonSprite) {
+      this.leftButtonSprite.destroy();
+      this.leftButtonSprite = null;
+    }
+
+    if (this.rightButtonSprite) {
+      this.rightButtonSprite.destroy();
+      this.rightButtonSprite = null;
+    }
+}
+
   private destroyFace() {
     for (const face of this.faces) {
       face.sprite.destroy();
@@ -238,6 +247,7 @@ export default class DecoScene extends Pixi.Container {
   public destroy() {
     this.saveStore();
     this.destroyBackground();
+    this.destroyButton();
     this.destroyFace();
     super.destroy();
   }

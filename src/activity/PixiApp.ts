@@ -1,6 +1,7 @@
 import * as Pixi from "pixi.js";
 import Setting from "../activity/base/Setting";
-import { activityState } from "../activity/store/store";
+import { get } from "svelte/store";
+import { currentView } from "../activity/store/store";
 import DecoMain from "./scene/DecoMain";
 import DecoScene from "./scene/DecoScene";
 
@@ -12,7 +13,7 @@ export default class PixiApp extends Pixi.Application {
       width: Setting.sceneWidth,
       height: Setting.sceneHeight,
       backgroundAlpha: 1,
-      backgroundColor: '#000',
+      backgroundColor: "#000",
       view: canvas,
       antialias: true,
     });
@@ -26,8 +27,8 @@ export default class PixiApp extends Pixi.Application {
       false
     );
 
-    activityState.subscribe(({ currentView }) => {
-      this.switchScene(currentView);
+    currentView.subscribe((value) => {
+      this.switchScene(value);
     });
   }
 
