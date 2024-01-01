@@ -1,4 +1,5 @@
 import * as Pixi from "pixi.js";
+import { sound } from "@pixi/sound";
 import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { activityState } from "../store/store";
@@ -18,6 +19,8 @@ export default class DecoMain extends Pixi.Container {
   private runScene() {
     this.setBackground();
     this.setChars();
+    sound.add("my-sound", "sounds/start.mp3");
+    sound.play("my-sound");
   }
 
   private setBackground() {
