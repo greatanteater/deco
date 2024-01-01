@@ -1,5 +1,5 @@
 import * as Pixi from "pixi.js";
-import { sound } from "@pixi/sound";
+import * as PixiSound from "@pixi/sound";
 import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { activityState } from "../store/store";
@@ -10,6 +10,7 @@ export default class DecoMain extends Pixi.Container {
   private mirrorSprite: Pixi.Sprite | null = null;
   private charSprites: Pixi.Sprite[] = [];
   private fxaaFilter: Pixi.Filter | null = null;
+  private startSound: PixiSound.Sound | null = null;
 
   constructor() {
     super();
@@ -19,8 +20,12 @@ export default class DecoMain extends Pixi.Container {
   private runScene() {
     this.setBackground();
     this.setChars();
-    sound.add("my-sound", "sounds/start.mp3");
-    sound.play("my-sound");
+    this.setSound();
+  }
+
+  private setSound() {
+    this.startSound = PixiSound.Sound.from("sounds/start.mp3");
+    this.startSound.play();
   }
 
   private setBackground() {
@@ -107,11 +112,19 @@ export default class DecoMain extends Pixi.Container {
     }
   }
 
+  private destroySound() {
+    if (this.startSound) {
+      this.startSound.destroy();
+      this.startSound = null;
+    }
+  }
+
   public destroy() {
     this.destroyChar();
     this.destroyBack();
     this.destroyFilter();
     this.filters = [];
+    this.destroySound()
     super.destroy();
   }
 }
