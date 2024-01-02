@@ -202,9 +202,11 @@ export default class DecoScene extends Pixi.Container {
       },
     ];
 
-    this.displacementSprite = Pixi.Sprite.from("images/scene/displace.png");
-    this.displacementSprite.width = Setting.sceneWidth * 4;
-    this.displacementSprite.height = Setting.sceneHeight * 4;
+    this.displacementSprite = Pixi.Sprite.from("images/scene/map.webp");
+    // this.displacementSprite.width = Setting.sceneWidth * 4;
+    // this.displacementSprite.height = Setting.sceneHeight * 4;
+    this.displacementSprite.anchor.set(0.5);
+    this.displacementSprite.scale.set(0.5);
     this.displacementSprite.position.set(
       Setting.sceneWidth / 2,
       Setting.sceneHeight / 2
@@ -234,11 +236,15 @@ export default class DecoScene extends Pixi.Container {
     }
 
     window.addEventListener("mousemove", (event) => {
-      if (this.displacementSprite) {
-        this.displacementSprite.position.set(
-          event.clientX - Setting.sceneWidth * 2,
-          event.clientY - Setting.sceneHeight * 2
-        );
+      if (this.displacementSprite && this.displacementFilter) {
+        const midpointX = Setting.sceneWidth / 2,
+          midpointY = Setting.sceneHeight / 2,
+          posX = midpointX - event.clientX,
+          posY = midpointY - event.clientY,
+          valX = (posX / midpointX) * 70,
+          valY = (posY / midpointY) * 70;
+        this.displacementFilter.scale.x = valX;
+        this.displacementFilter.scale.y = valY;
       }
     });
   }
