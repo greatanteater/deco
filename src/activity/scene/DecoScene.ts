@@ -29,6 +29,7 @@ export default class DecoScene extends Pixi.Container {
   private async initialize() {
     this.runScene();
     await this.fadeIn();
+    this.example();
   }
 
   private loadStore() {
@@ -54,12 +55,85 @@ export default class DecoScene extends Pixi.Container {
     fadeIn.kill();
   }
 
+  private example() {
+    const flag = Pixi.Sprite.from(
+      "https://pixijs.com/assets/pixi-filters/flag.png"
+    );
+
+    this.addChild(flag);
+    flag.x = 100;
+    flag.y = 100;
+
+    const displacementSprite = Pixi.Sprite.from(
+      "https://pixijs.com/assets/pixi-filters/displacement_map_repeat.jpg"
+    );
+    // Make sure the sprite is wrapping.
+
+    displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.REPEAT;
+    const displacementFilter = new Pixi.DisplacementFilter(displacementSprite);
+
+    displacementFilter.padding = 10;
+
+    displacementSprite.position = flag.position;
+
+    this.addChild(displacementSprite);
+
+    flag.filters = [displacementFilter];
+
+    displacementFilter.scale.x = 30;
+    displacementFilter.scale.y = 60;
+
+    Pixi.Ticker.shared.add(() => {
+      // Offset the sprite position to make vFilterCoord update to larger value.
+      // Repeat wrapping makes sure there's still pixels on the coordinates.
+      displacementSprite.x++;
+      // Reset x to 0 when it's over width to keep values from going to very huge numbers.
+      if (displacementSprite.x > displacementSprite.width) {
+        displacementSprite.x = 0;
+      }
+    });
+  }
+
   private setBackground() {
     this.backgroundSprite = Pixi.Sprite.from("images/scene/background.jpg");
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
   }
+
+  // private setBackground() {
+  //   // build a rope!
+  //   const ropeLength = Setting.sceneWidth / 100;
+
+  //   const points: any[] = [];
+  //   const targetPos = { x: Setting.sceneWidth / 2, y: Setting.sceneHeight / 2 }; // 쳐다보게 할 타겟 위치
+
+  //   for (let i = 0; i < 100; i++) {
+  //     let dx = targetPos.x - i * ropeLength;
+  //     let dy = targetPos.y - 0;
+  //     let angle = Math.atan2(dy, dx);
+
+  //     // 타겟 위치에 따라 y 위치를 조정하여 쳐다보는 효과를 생성
+  //     points.push(new Pixi.Point(i * ropeLength, Math.sin(angle) * 30));
+  //   }
+
+  //   this.backgroundSprite = Pixi.Sprite.from("images/scene/background.jpg");
+  //   this.backgroundSprite.width = Setting.sceneWidth;
+  //   this.backgroundSprite.height = Setting.sceneHeight;
+  //   // this.addChild(this.backgroundSprite);
+
+  //   const strip = new Pixi.SimpleRope(
+  //     Pixi.Texture.from("images/scene/background.jpg"),
+  //     points
+  //   );
+
+  //   strip.width = Setting.sceneWidth;
+  //   strip.height = Setting.sceneHeight;
+  //   strip.x = this.backgroundSprite.x;
+  //   strip.y = this.backgroundSprite.y + this.backgroundSprite.height / 2;
+
+  //   this.addChild(strip);
+  // }
 
   private setButton() {
     this.backButtonSprite = Pixi.Sprite.from("images/scene/back.png");
@@ -117,18 +191,73 @@ export default class DecoScene extends Pixi.Container {
       },
     ];
 
+    const displacementSprite = Pixi.Sprite.from(
+      "images/scene/displace.png"
+    );
+    displacementSprite.width = Setting.sceneWidth * 4;
+    displacementSprite.height = Setting.sceneHeight * 4;
+    displacementSprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
+    displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
+    const displacementFilter = new Pixi.DisplacementFilter(displacementSprite);
+    displacementFilter.padding = 0;
+    displacementFilter.scale.x = 150;
+    displacementFilter.scale.y = 100;
+    
+    this.addChild(displacementSprite);
+
     for (const { imagePath, position, charNumber } of faceData) {
       const sprite = Pixi.Sprite.from(imagePath);
-
       sprite.width = 650;
       sprite.height = 700;
       sprite.anchor.set(0.5);
       sprite.position.set(position.x, position.y);
+      sprite.filters = [displacementFilter];
       this.addChild(sprite);
 
       const face: Face = { sprite, charNumber };
       this.faces.push(face);
     }
+
+    window.addEventListener("mousemove", (event) => {
+      displacementSprite.position.set(
+        event.clientX - Setting.sceneWidth * 2,
+        event.clientY - Setting.sceneHeight * 2
+      );
+    });
+  }
+
+  private setBackground1() {
+    // build a rope!
+    const ropeLength = Setting.sceneWidth / 100;
+
+    const points: any[] = [];
+    const targetPos = { x: Setting.sceneWidth / 2, y: Setting.sceneHeight / 2 }; // 쳐다보게 할 타겟 위치
+
+    for (let i = 0; i < 100; i++) {
+      let dx = targetPos.x - i * ropeLength;
+      let dy = targetPos.y - 0;
+      let angle = Math.atan2(dy, dx);
+
+      // 타겟 위치에 따라 y 위치를 조정하여 쳐다보는 효과를 생성
+      points.push(new Pixi.Point(i * ropeLength, Math.sin(angle) * 30));
+    }
+
+    this.backgroundSprite = Pixi.Sprite.from("images/scene/background.jpg");
+    this.backgroundSprite.width = Setting.sceneWidth;
+    this.backgroundSprite.height = Setting.sceneHeight;
+    // this.addChild(this.backgroundSprite);
+
+    const strip = new Pixi.SimpleRope(
+      Pixi.Texture.from("images/scene/background.jpg"),
+      points
+    );
+
+    strip.width = Setting.sceneWidth;
+    strip.height = Setting.sceneHeight;
+    strip.x = this.backgroundSprite.x;
+    strip.y = this.backgroundSprite.y + this.backgroundSprite.height / 2;
+
+    this.addChild(strip);
   }
 
   private async setFacesPosition(direction: string) {
@@ -235,7 +364,7 @@ export default class DecoScene extends Pixi.Container {
       this.rightButtonSprite.destroy();
       this.rightButtonSprite = null;
     }
-}
+  }
 
   private destroyFace() {
     for (const face of this.faces) {
