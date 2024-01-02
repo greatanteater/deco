@@ -19,6 +19,8 @@ export default class DecoScene extends Pixi.Container {
   private currentView: string | null = null;
   private charNumber = 0;
   private faceMoving = false;
+  private displacementSprite: Pixi.Sprite | null = null;
+  private displacementFilter: Pixi.DisplacementFilter | null = null;
 
   constructor() {
     super();
@@ -167,19 +169,19 @@ export default class DecoScene extends Pixi.Container {
       },
     ];
 
-    const displacementSprite = Pixi.Sprite.from(
+    this.displacementSprite = Pixi.Sprite.from(
       "images/scene/displace.png"
     );
-    displacementSprite.width = Setting.sceneWidth * 4;
-    displacementSprite.height = Setting.sceneHeight * 4;
-    displacementSprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
-    displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
-    const displacementFilter = new Pixi.DisplacementFilter(displacementSprite);
-    displacementFilter.padding = 10;
-    displacementFilter.scale.x = 150;
-    displacementFilter.scale.y = 100;
+    this.displacementSprite.width = Setting.sceneWidth * 4;
+    this.displacementSprite.height = Setting.sceneHeight * 4;
+    this.displacementSprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
+    this.displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
+    this.displacementFilter = new Pixi.DisplacementFilter(this.displacementSprite);
+    this.displacementFilter.padding = 10;
+    this.displacementFilter.scale.x = 150;
+    this.displacementFilter.scale.y = 100;
     
-    this.addChild(displacementSprite);
+    this.addChild(this.displacementSprite);
 
     for (const { imagePath, position, charNumber } of faceData) {
       const sprite = Pixi.Sprite.from(imagePath);
@@ -187,7 +189,7 @@ export default class DecoScene extends Pixi.Container {
       sprite.height = 700;
       sprite.anchor.set(0.5);
       sprite.position.set(position.x, position.y);
-      sprite.filters = [displacementFilter];
+      sprite.filters = [this.displacementFilter];
       this.addChild(sprite);
 
       const face: Face = { sprite, charNumber };
@@ -195,45 +197,13 @@ export default class DecoScene extends Pixi.Container {
     }
 
     window.addEventListener("mousemove", (event) => {
-      displacementSprite.position.set(
-        event.clientX - Setting.sceneWidth * 2,
-        event.clientY - Setting.sceneHeight * 2
-      );
+      if (this.displacementSprite) {
+        this.displacementSprite.position.set(
+          event.clientX - Setting.sceneWidth * 2,
+          event.clientY - Setting.sceneHeight * 2
+        );
+      }
     });
-  }
-
-  private setBackground1() {
-    // build a rope!
-    const ropeLength = Setting.sceneWidth / 100;
-
-    const points: any[] = [];
-    const targetPos = { x: Setting.sceneWidth / 2, y: Setting.sceneHeight / 2 }; // 쳐다보게 할 타겟 위치
-
-    for (let i = 0; i < 100; i++) {
-      let dx = targetPos.x - i * ropeLength;
-      let dy = targetPos.y - 0;
-      let angle = Math.atan2(dy, dx);
-
-      // 타겟 위치에 따라 y 위치를 조정하여 쳐다보는 효과를 생성
-      points.push(new Pixi.Point(i * ropeLength, Math.sin(angle) * 30));
-    }
-
-    this.backgroundSprite = Pixi.Sprite.from("images/scene/background.jpg");
-    this.backgroundSprite.width = Setting.sceneWidth;
-    this.backgroundSprite.height = Setting.sceneHeight;
-    // this.addChild(this.backgroundSprite);
-
-    const strip = new Pixi.SimpleRope(
-      Pixi.Texture.from("images/scene/background.jpg"),
-      points
-    );
-
-    strip.width = Setting.sceneWidth;
-    strip.height = Setting.sceneHeight;
-    strip.x = this.backgroundSprite.x;
-    strip.y = this.backgroundSprite.y + this.backgroundSprite.height / 2;
-
-    this.addChild(strip);
   }
 
   private async setFacesPosition(direction: string) {
@@ -347,6 +317,14 @@ export default class DecoScene extends Pixi.Container {
       face.sprite.destroy();
     }
     this.faces = [];
+    if (this.displacementSprite) {
+      this.displacementSprite.destroy();
+      this.displacementSprite = null;
+    }
+    if (this.displacementFilter) {
+      this.displacementFilter.destroy();
+      this.displacementFilter = null;
+    }
   }
 
   public destroy() {
