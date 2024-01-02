@@ -241,8 +241,8 @@ export default class DecoScene extends Pixi.Container {
           midpointY = Setting.sceneHeight / 2,
           posX = midpointX - event.clientX,
           posY = midpointY - event.clientY,
-          valX = (posX / midpointX) * 70,
-          valY = (posY / midpointY) * 70;
+          valX = (posX / midpointX) * 50,
+          valY = (posY / midpointY) * 50;
         this.displacementFilter.scale.x = valX;
         this.displacementFilter.scale.y = valY;
       }
