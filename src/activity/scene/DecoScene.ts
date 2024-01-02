@@ -5,9 +5,38 @@ import { get } from "svelte/store";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 
+interface Position {
+  x: number;
+  y: number;
+}
+
 interface Face {
   sprite: Pixi.Sprite;
   charNumber: number;
+}
+
+interface Sticker {
+  eye: eye;
+  nose: nose;
+  mouse: mouse;
+}
+
+interface eye {
+  sprite: Pixi.Sprite;
+  path: string;
+  position: Position;
+}
+
+interface nose {
+  sprite: Pixi.Sprite;
+  path: string;
+  position: Position;
+}
+
+interface mouse {
+  sprite: Pixi.Sprite;
+  path: string;
+  position: Position;
 }
 
 export default class DecoScene extends Pixi.Container {
@@ -21,7 +50,8 @@ export default class DecoScene extends Pixi.Container {
   private faceMoving = false;
   private displacementSprite: Pixi.Sprite | null = null;
   private displacementFilter: Pixi.DisplacementFilter | null = null;
-  private StickerHive: Pixi.Graphics | null = null;
+  private stickerHive: Pixi.Graphics | null = null;
+  private stickers: Sticker[] = [];
 
   constructor() {
     super();
@@ -49,7 +79,8 @@ export default class DecoScene extends Pixi.Container {
     this.setButton();
     this.setFaces();
     this.setFacesPosition("default");
-    this.setStickerHive()
+    this.setStickerHive();
+    this.setPositonStickers(this.charNumber);
   }
 
   private async fadeIn() {
@@ -278,6 +309,7 @@ export default class DecoScene extends Pixi.Container {
       }
       this.faceMoveEnable(false);
     }
+    this.setPositonStickers(this.charNumber);
   }
 
   private faceMoveEnable(enable: boolean) {
@@ -295,13 +327,72 @@ export default class DecoScene extends Pixi.Container {
   }
 
   private setStickerHive() {
-    this.StickerHive = new Pixi.Graphics();
-    this.StickerHive.beginFill(0xFFEBCD );
-    this.StickerHive.drawRoundedRect(0, 0, 160, 550, 10);
-    this.StickerHive.endFill();
-    this.StickerHive.pivot.set(60, 225);
-    this.StickerHive.position.set(1200, 300);
-    this.addChild(this.StickerHive);
+    this.stickerHive = new Pixi.Graphics();
+    this.stickerHive.beginFill(0xffebcd);
+    this.stickerHive.drawRoundedRect(0, 0, 160, 550, 10);
+    this.stickerHive.endFill();
+    this.stickerHive.pivot.set(60, 225);
+    this.stickerHive.position.set(1200, 300);
+    this.addChild(this.stickerHive);
+
+    for (let i = 1; i <= 4; i++) {
+      let sticker: Sticker = {
+        eye: {
+          sprite: Pixi.Sprite.from(`images/scene/eye${i}.png`),
+          path: `images/scene/eye${i}.png`,
+          position: { x: 1220, y: 150 },
+        },
+        nose: {
+          sprite: Pixi.Sprite.from(`images/scene/nose${i}.png`),
+          path: `images/scene/nose${i}.png`,
+          position: { x: 1220, y: 350 },
+        },
+        mouse: {
+          sprite: Pixi.Sprite.from(`images/scene/mouse${i}.png`),
+          path: `images/scene/mouse${i}.png`,
+          position: { x: 1220, y: 550 },
+        },
+      };
+      sticker.eye.sprite.width = 100;
+      sticker.eye.sprite.height = 100;
+      sticker.eye.sprite.position.set(-1000, 500);
+      sticker.eye.sprite.anchor.set(0.5);
+      sticker.nose.sprite.width = 100;
+      sticker.nose.sprite.height = 100;
+      sticker.nose.sprite.position.set(-1000, 500);
+      sticker.nose.sprite.anchor.set(0.5);
+      sticker.mouse.sprite.width = 100;
+      sticker.mouse.sprite.height = 100;
+      sticker.mouse.sprite.position.set(-1000, 500);
+      sticker.mouse.sprite.anchor.set(0.5);
+      this.addChild(sticker.eye.sprite);
+      this.addChild(sticker.nose.sprite);
+      this.addChild(sticker.mouse.sprite);
+      this.stickers.push(sticker);
+    }
+  }
+
+  private setPositonStickers(number: number) {
+    this.stickers.forEach((sticker: Sticker, i: number) => {
+      if (i === number) {
+        sticker.eye.sprite.position.set(
+          sticker.eye.position.x,
+          sticker.eye.position.y
+        );
+        sticker.nose.sprite.position.set(
+          sticker.nose.position.x,
+          sticker.nose.position.y
+        );
+        sticker.mouse.sprite.position.set(
+          sticker.mouse.position.x,
+          sticker.mouse.position.y
+        );
+      } else {
+        sticker.eye.sprite.position.set(-1000, 500);
+        sticker.nose.sprite.position.set(-1000, 500);
+        sticker.mouse.sprite.position.set(-1000, 500);
+      }
+    });
   }
 
   private destroyBackground() {
