@@ -101,40 +101,6 @@ export default class DecoScene extends Pixi.Container {
     this.addChild(this.backgroundSprite);
   }
 
-  // private setBackground() {
-  //   // build a rope!
-  //   const ropeLength = Setting.sceneWidth / 100;
-
-  //   const points: any[] = [];
-  //   const targetPos = { x: Setting.sceneWidth / 2, y: Setting.sceneHeight / 2 }; // 쳐다보게 할 타겟 위치
-
-  //   for (let i = 0; i < 100; i++) {
-  //     let dx = targetPos.x - i * ropeLength;
-  //     let dy = targetPos.y - 0;
-  //     let angle = Math.atan2(dy, dx);
-
-  //     // 타겟 위치에 따라 y 위치를 조정하여 쳐다보는 효과를 생성
-  //     points.push(new Pixi.Point(i * ropeLength, Math.sin(angle) * 30));
-  //   }
-
-  //   this.backgroundSprite = Pixi.Sprite.from("images/scene/background.jpg");
-  //   this.backgroundSprite.width = Setting.sceneWidth;
-  //   this.backgroundSprite.height = Setting.sceneHeight;
-  //   // this.addChild(this.backgroundSprite);
-
-  //   const strip = new Pixi.SimpleRope(
-  //     Pixi.Texture.from("images/scene/background.jpg"),
-  //     points
-  //   );
-
-  //   strip.width = Setting.sceneWidth;
-  //   strip.height = Setting.sceneHeight;
-  //   strip.x = this.backgroundSprite.x;
-  //   strip.y = this.backgroundSprite.y + this.backgroundSprite.height / 2;
-
-  //   this.addChild(strip);
-  // }
-
   private setButton() {
     this.backButtonSprite = Pixi.Sprite.from("images/scene/back.png");
     this.backButtonSprite.width = 70;
@@ -189,6 +155,16 @@ export default class DecoScene extends Pixi.Container {
         position: { x: -1000, y: 500 },
         charNumber: 1,
       },
+      {
+        imagePath: "images/scene/face3.png",
+        position: { x: -1000, y: 500 },
+        charNumber: 2,
+      },
+      {
+        imagePath: "images/scene/face4.png",
+        position: { x: -1000, y: 500 },
+        charNumber: 3,
+      },
     ];
 
     const displacementSprite = Pixi.Sprite.from(
@@ -199,7 +175,7 @@ export default class DecoScene extends Pixi.Container {
     displacementSprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
     displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
     const displacementFilter = new Pixi.DisplacementFilter(displacementSprite);
-    displacementFilter.padding = 0;
+    displacementFilter.padding = 10;
     displacementFilter.scale.x = 150;
     displacementFilter.scale.y = 100;
     
