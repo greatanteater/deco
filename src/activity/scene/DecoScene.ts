@@ -21,6 +21,7 @@ export default class DecoScene extends Pixi.Container {
   private faceMoving = false;
   private displacementSprite: Pixi.Sprite | null = null;
   private displacementFilter: Pixi.DisplacementFilter | null = null;
+  private StickerHive: Pixi.Graphics | null = null;
 
   constructor() {
     super();
@@ -48,6 +49,7 @@ export default class DecoScene extends Pixi.Container {
     this.setButton();
     this.setFaces();
     this.setFacesPosition("default");
+    this.setStickerHive()
   }
 
   private async fadeIn() {
@@ -169,18 +171,22 @@ export default class DecoScene extends Pixi.Container {
       },
     ];
 
-    this.displacementSprite = Pixi.Sprite.from(
-      "images/scene/displace.png"
-    );
+    this.displacementSprite = Pixi.Sprite.from("images/scene/displace.png");
     this.displacementSprite.width = Setting.sceneWidth * 4;
     this.displacementSprite.height = Setting.sceneHeight * 4;
-    this.displacementSprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
-    this.displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
-    this.displacementFilter = new Pixi.DisplacementFilter(this.displacementSprite);
+    this.displacementSprite.position.set(
+      Setting.sceneWidth / 2,
+      Setting.sceneHeight / 2
+    );
+    this.displacementSprite.texture.baseTexture.wrapMode =
+      Pixi.WRAP_MODES.CLAMP;
+    this.displacementFilter = new Pixi.DisplacementFilter(
+      this.displacementSprite
+    );
     this.displacementFilter.padding = 10;
     this.displacementFilter.scale.x = 150;
     this.displacementFilter.scale.y = 100;
-    
+
     this.addChild(this.displacementSprite);
 
     for (const { imagePath, position, charNumber } of faceData) {
@@ -286,6 +292,16 @@ export default class DecoScene extends Pixi.Container {
         this.rightButtonSprite.alpha = 1;
       }
     }
+  }
+
+  private setStickerHive() {
+    this.StickerHive = new Pixi.Graphics();
+    this.StickerHive.beginFill(0xFFEBCD );
+    this.StickerHive.drawRoundedRect(0, 0, 160, 550, 10);
+    this.StickerHive.endFill();
+    this.StickerHive.pivot.set(60, 225);
+    this.StickerHive.position.set(1200, 300);
+    this.addChild(this.StickerHive);
   }
 
   private destroyBackground() {
