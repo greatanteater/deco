@@ -57,6 +57,7 @@ export default class DecoScene extends Pixi.Container {
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Sticker[] = [];
+  private isPointerInside = true;
 
   constructor() {
     super();
@@ -222,10 +223,21 @@ export default class DecoScene extends Pixi.Container {
       const displacement: Displacement = { sprite, charNumber };
       this.displacements.push(displacement);
     }
-    window.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+    window.addEventListener("pointermove", (event) => {
+        this.pointerMoveHandler.bind(this)(event);
+    });
   }
 
-  private mouseMoveHandler(event: MouseEvent) {
+  private pointerMoveHandler(event: PointerEvent) {
+    if (
+      event.clientX < 0 ||
+      event.clientX > Setting.sceneWidth ||
+      event.clientY < 0 ||
+      event.clientY > Setting.sceneHeight
+    ) {
+      return;
+    }
+  
     if (this.displacementFilter[this.charNumber]) {
       const midpointX = Setting.sceneWidth / 2,
         midpointY = Setting.sceneHeight / 2,
@@ -237,6 +249,7 @@ export default class DecoScene extends Pixi.Container {
       this.displacementFilter[this.charNumber].scale.y = valY;
     }
   }
+  
 
   private setFaces() {
     const faceData = [
@@ -522,7 +535,10 @@ export default class DecoScene extends Pixi.Container {
       }
       this.displacementFilter = [];
       this.displacements = [];
-      window.removeEventListener("mousemove", this.mouseMoveHandler.bind(this));
+      window.removeEventListener(
+        "pointermove",
+        this.pointerMoveHandler.bind(this)
+      );
     }
   }
 
