@@ -6,6 +6,8 @@ import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import * as Data from "./DecoSceneData";
 import StickerManager from "./DecoSceneSub";
+import DecoDrawingBoard from "./DecoDrawingBoard";
+import PixiApp from "../PixiApp";
 
 export default class DecoScene extends Pixi.Container {
   public backgroundSprite: Pixi.Sprite | null = null;
@@ -20,7 +22,7 @@ export default class DecoScene extends Pixi.Container {
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Data.Sticker[] = [];
-  private isPointerInside = true;
+  private decoDrawingBoard: DecoDrawingBoard | null = null;
 
   constructor() {
     super();
@@ -50,6 +52,7 @@ export default class DecoScene extends Pixi.Container {
     this.setFacesPosition("default");
     this.loadStickerHive();
     this.setPositonStickers(this.charNumber);
+    this.runDecoDrawingBoard();
   }
 
   private async fadeIn() {
@@ -57,6 +60,11 @@ export default class DecoScene extends Pixi.Container {
     const fadeIn = gsap.to(this, { alpha: 1, duration: 1 });
     await fadeIn;
     fadeIn.kill();
+  }
+
+  private runDecoDrawingBoard() {
+    this.decoDrawingBoard = new DecoDrawingBoard(this);
+    this.addChild(this.decoDrawingBoard);
   }
 
   private setBackground() {

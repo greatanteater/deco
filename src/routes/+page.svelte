@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import PixiApp from "../activity/PixiApp";
+  import PixiDrawingApp from "../activity/PixiDrawingApp";
 
   let canvas: HTMLCanvasElement;
 
@@ -20,9 +21,15 @@
 </svelte:head>
 
 <canvas bind:this={canvas} id="canvas"></canvas>
-
 <style>
   #canvas {
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  }
+  #canvas2 {
     left: 0px;
     top: 0px;
     width: 100%;
