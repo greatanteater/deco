@@ -4,51 +4,14 @@ import { wait } from "../util/Util";
 import { get } from "svelte/store";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-
-interface Position {
-  x: number;
-  y: number;
-}
-
-interface Face {
-  sprite: Pixi.Sprite;
-  charNumber: number;
-}
-
-interface Displacement {
-  sprite: Pixi.Sprite;
-  charNumber: number;
-}
-
-interface Sticker {
-  eye: eye;
-  nose: nose;
-  mouse: mouse;
-}
-
-interface eye {
-  sprite: Pixi.Sprite;
-  path: string;
-  position: Position;
-}
-
-interface nose {
-  sprite: Pixi.Sprite;
-  path: string;
-  position: Position;
-}
-
-interface mouse {
-  sprite: Pixi.Sprite;
-  path: string;
-  position: Position;
-}
+import * as Data from "./DecoSceneData";
+import StickerManager from "./DecoSceneSub";
 
 export default class DecoScene extends Pixi.Container {
-  private backgroundSprite: Pixi.Sprite | null = null;
+  public backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
-  private faces: Face[] = [];
-  private displacements: Displacement[] = [];
+  private faces: Data.Face[] = [];
+  private displacements: Data.Displacement[] = [];
   private leftButtonSprite: Pixi.Sprite | null = null;
   private rightButtonSprite: Pixi.Sprite | null = null;
   private currentView: string | null = null;
@@ -56,7 +19,7 @@ export default class DecoScene extends Pixi.Container {
   private faceMoving = false;
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private stickerHive: Pixi.Graphics | null = null;
-  private stickers: Sticker[] = [];
+  private stickers: Data.Sticker[] = [];
   private isPointerInside = true;
 
   constructor() {
@@ -68,7 +31,6 @@ export default class DecoScene extends Pixi.Container {
   private async initialize() {
     this.runScene();
     await this.fadeIn();
-    this.example();
   }
 
   private loadStore() {
@@ -86,7 +48,7 @@ export default class DecoScene extends Pixi.Container {
     this.setDisplacement();
     this.setFaces();
     this.setFacesPosition("default");
-    this.setStickerHive();
+    this.loadStickerHive();
     this.setPositonStickers(this.charNumber);
   }
 
@@ -95,45 +57,6 @@ export default class DecoScene extends Pixi.Container {
     const fadeIn = gsap.to(this, { alpha: 1, duration: 1 });
     await fadeIn;
     fadeIn.kill();
-  }
-
-  private example() {
-    const flag = Pixi.Sprite.from(
-      "https://pixijs.com/assets/pixi-filters/flag.png"
-    );
-
-    this.addChild(flag);
-    flag.x = 100;
-    flag.y = 100;
-
-    const displacementSprite = Pixi.Sprite.from(
-      "https://pixijs.com/assets/pixi-filters/displacement_map_repeat.jpg"
-    );
-    // Make sure the sprite is wrapping.
-
-    displacementSprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.REPEAT;
-    const displacementFilter = new Pixi.DisplacementFilter(displacementSprite);
-
-    displacementFilter.padding = 10;
-
-    displacementSprite.position = flag.position;
-
-    this.addChild(displacementSprite);
-
-    flag.filters = [displacementFilter];
-
-    displacementFilter.scale.x = 30;
-    displacementFilter.scale.y = 60;
-
-    Pixi.Ticker.shared.add(() => {
-      // Offset the sprite position to make vFilterCoord update to larger value.
-      // Repeat wrapping makes sure there's still pixels on the coordinates.
-      displacementSprite.x++;
-      // Reset x to 0 when it's over width to keep values from going to very huge numbers.
-      if (displacementSprite.x > displacementSprite.width) {
-        displacementSprite.x = 0;
-      }
-    });
   }
 
   private setBackground() {
@@ -220,7 +143,7 @@ export default class DecoScene extends Pixi.Container {
       this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(sprite);
       this.addChild(sprite);
 
-      const displacement: Displacement = { sprite, charNumber };
+      const displacement: Data.Displacement = { sprite, charNumber };
       this.displacements.push(displacement);
     }
     window.addEventListener("pointermove", (event) => {
@@ -286,7 +209,7 @@ export default class DecoScene extends Pixi.Container {
       }
       this.addChild(sprite);
 
-      const face: Face = { sprite, charNumber };
+      const face: Data.Face = { sprite, charNumber };
       this.faces.push(face);
     }
   }
@@ -418,54 +341,25 @@ export default class DecoScene extends Pixi.Container {
     }
   }
 
-  private setStickerHive() {
-    this.stickerHive = new Pixi.Graphics();
-    this.stickerHive.beginFill(0xffebcd);
-    this.stickerHive.drawRoundedRect(0, 0, 160, 550, 10);
-    this.stickerHive.endFill();
-    this.stickerHive.pivot.set(60, 225);
-    this.stickerHive.position.set(1200, 300);
-    this.addChild(this.stickerHive);
+  private loadStickerHive() {
+    const stickerManager = new StickerManager();
+    const { stickers, stickerHive } = stickerManager.getStickerData();
 
-    for (let i = 1; i <= 4; i++) {
-      let sticker: Sticker = {
-        eye: {
-          sprite: Pixi.Sprite.from(`images/scene/eye${i}.png`),
-          path: `images/scene/eye${i}.png`,
-          position: { x: 1220, y: 150 },
-        },
-        nose: {
-          sprite: Pixi.Sprite.from(`images/scene/nose${i}.png`),
-          path: `images/scene/nose${i}.png`,
-          position: { x: 1220, y: 350 },
-        },
-        mouse: {
-          sprite: Pixi.Sprite.from(`images/scene/mouse${i}.png`),
-          path: `images/scene/mouse${i}.png`,
-          position: { x: 1220, y: 550 },
-        },
-      };
-      sticker.eye.sprite.width = 100;
-      sticker.eye.sprite.height = 100;
-      sticker.eye.sprite.position.set(-1000, 500);
-      sticker.eye.sprite.anchor.set(0.5);
-      sticker.nose.sprite.width = 100;
-      sticker.nose.sprite.height = 100;
-      sticker.nose.sprite.position.set(-1000, 500);
-      sticker.nose.sprite.anchor.set(0.5);
-      sticker.mouse.sprite.width = 100;
-      sticker.mouse.sprite.height = 100;
-      sticker.mouse.sprite.position.set(-1000, 500);
-      sticker.mouse.sprite.anchor.set(0.5);
+    this.stickerHive = stickerHive;
+    this.stickers = stickers;
+
+    if (this.stickerHive) {
+      this.addChild(this.stickerHive);
+    }
+    for (let sticker of this.stickers) {
       this.addChild(sticker.eye.sprite);
       this.addChild(sticker.nose.sprite);
       this.addChild(sticker.mouse.sprite);
-      this.stickers.push(sticker);
     }
   }
 
   private setPositonStickers(number: number) {
-    this.stickers.forEach((sticker: Sticker, i: number) => {
+    this.stickers.forEach((sticker: Data.Sticker, i: number) => {
       if (i === number) {
         sticker.eye.sprite.position.set(
           sticker.eye.position.x,
@@ -542,12 +436,28 @@ export default class DecoScene extends Pixi.Container {
     }
   }
 
+  private destroyStickerHive() {
+    if (this.stickerHive) {
+      this.removeChild(this.stickerHive);
+      this.stickerHive = null;
+    }
+
+    for (let sticker of this.stickers) {
+      this.removeChild(sticker.eye.sprite);
+      this.removeChild(sticker.nose.sprite);
+      this.removeChild(sticker.mouse.sprite);
+    }
+
+    this.stickers = [];
+  }
+
   public destroy() {
     this.saveStore();
     this.destroyBackground();
     this.destroyButton();
     this.destroyDisplacement();
     this.destroyFace();
+    this.destroyStickerHive();
     super.destroy();
   }
 }
