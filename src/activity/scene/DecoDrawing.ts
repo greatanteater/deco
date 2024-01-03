@@ -9,7 +9,7 @@ import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import PixiApp from "../PixiApp";
 
-export default class DecoDrawingBoard extends Pixi.Container {
+export default class DecoDrawing extends Pixi.Container {
   private maskSprite: Pixi.Sprite | null = null;
   private graphicDraw: SmoothGraphics | null = null;
   private down = false;
