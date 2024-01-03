@@ -15,6 +15,11 @@ interface Face {
   charNumber: number;
 }
 
+interface Displacement {
+  sprite: Pixi.Sprite;
+  charNumber: number;
+}
+
 interface Sticker {
   eye: eye;
   nose: nose;
@@ -43,13 +48,13 @@ export default class DecoScene extends Pixi.Container {
   private backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
   private faces: Face[] = [];
+  private displacements: Displacement[] = [];
   private leftButtonSprite: Pixi.Sprite | null = null;
   private rightButtonSprite: Pixi.Sprite | null = null;
   private currentView: string | null = null;
   private charNumber = 0;
   private faceMoving = false;
-  private displacementSprite: Pixi.Sprite | null = null;
-  private displacementFilter: Pixi.DisplacementFilter | null = null;
+  private displacementFilter: Pixi.DisplacementFilter[] = [];
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Sticker[] = [];
 
@@ -77,6 +82,7 @@ export default class DecoScene extends Pixi.Container {
   private runScene() {
     this.setBackground();
     this.setButton();
+    this.setDisplacement();
     this.setFaces();
     this.setFacesPosition("default");
     this.setStickerHive();
@@ -178,6 +184,60 @@ export default class DecoScene extends Pixi.Container {
     this.addChild(this.rightButtonSprite);
   }
 
+  private setDisplacement() {
+    const displacementData = [
+      {
+        imagePath: "images/scene/map1.jpg",
+        position: { x: -1000, y: 500 },
+        charNumber: 0,
+      },
+      {
+        imagePath: "images/scene/map2.jpg",
+        position: { x: -1000, y: 500 },
+        charNumber: 1,
+      },
+      {
+        imagePath: "images/scene/map3.jpg",
+        position: { x: -1000, y: 500 },
+        charNumber: 2,
+      },
+      {
+        imagePath: "images/scene/map4.jpg",
+        position: { x: -1000, y: 500 },
+        charNumber: 3,
+      },
+    ];
+
+    for (const { imagePath, position, charNumber } of displacementData) {
+      const sprite = Pixi.Sprite.from(imagePath);
+      sprite.width = 650;
+      sprite.height = 700;
+      sprite.anchor.set(0.5);
+      sprite.scale.set(0.5);
+      sprite.position.set(position.x, position.y);
+      sprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
+      this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(sprite);
+      this.addChild(sprite);
+
+      const displacement: Displacement = { sprite, charNumber };
+      this.displacements.push(displacement);
+    }
+    window.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+  }
+
+  private mouseMoveHandler(event: MouseEvent) {
+    if (this.displacementFilter[this.charNumber]) {
+      const midpointX = Setting.sceneWidth / 2,
+        midpointY = Setting.sceneHeight / 2,
+        posX = midpointX - event.clientX,
+        posY = midpointY - event.clientY,
+        valX = (posX / midpointX) * 30,
+        valY = (posY / midpointY) * 17;
+      this.displacementFilter[this.charNumber].scale.x = valX;
+      this.displacementFilter[this.charNumber].scale.y = valY;
+    }
+  }
+
   private setFaces() {
     const faceData = [
       {
@@ -202,51 +262,20 @@ export default class DecoScene extends Pixi.Container {
       },
     ];
 
-    this.displacementSprite = Pixi.Sprite.from("images/scene/map.webp");
-    // this.displacementSprite.width = Setting.sceneWidth * 4;
-    // this.displacementSprite.height = Setting.sceneHeight * 4;
-    this.displacementSprite.anchor.set(0.5);
-    this.displacementSprite.scale.set(0.5);
-    this.displacementSprite.position.set(
-      Setting.sceneWidth / 2,
-      Setting.sceneHeight / 2
-    );
-    this.displacementSprite.texture.baseTexture.wrapMode =
-      Pixi.WRAP_MODES.CLAMP;
-    this.displacementFilter = new Pixi.DisplacementFilter(
-      this.displacementSprite
-    );
-    this.displacementFilter.padding = 10;
-    this.displacementFilter.scale.x = 150;
-    this.displacementFilter.scale.y = 100;
-
-    this.addChild(this.displacementSprite);
-
     for (const { imagePath, position, charNumber } of faceData) {
       const sprite = Pixi.Sprite.from(imagePath);
       sprite.width = 650;
       sprite.height = 700;
       sprite.anchor.set(0.5);
       sprite.position.set(position.x, position.y);
-      sprite.filters = [this.displacementFilter];
+      if (this.displacementFilter) {
+        sprite.filters = [this.displacementFilter[charNumber]];
+      }
       this.addChild(sprite);
 
       const face: Face = { sprite, charNumber };
       this.faces.push(face);
     }
-
-    window.addEventListener("mousemove", (event) => {
-      if (this.displacementSprite && this.displacementFilter) {
-        const midpointX = Setting.sceneWidth / 2,
-          midpointY = Setting.sceneHeight / 2,
-          posX = midpointX - event.clientX,
-          posY = midpointY - event.clientY,
-          valX = (posX / midpointX) * 50,
-          valY = (posY / midpointY) * 50;
-        this.displacementFilter.scale.x = valX;
-        this.displacementFilter.scale.y = valY;
-      }
-    });
   }
 
   private async setFacesPosition(direction: string) {
@@ -271,6 +300,25 @@ export default class DecoScene extends Pixi.Container {
             500
           );
           gsap.to(face.sprite.position, {
+            x: Setting.sceneWidth / 2,
+            y: 500,
+            duration: 1,
+          });
+        }
+      }
+      for (const displacement of this.displacements) {
+        if (displacement.charNumber === previousCharNumber) {
+          gsap.to(displacement.sprite.position, {
+            x: Setting.sceneWidth / 2 + Setting.sceneWidth,
+            y: 500,
+            duration: 1,
+          });
+        } else if (displacement.charNumber === this.charNumber) {
+          displacement.sprite.position.set(
+            Setting.sceneWidth / 2 - Setting.sceneWidth,
+            500
+          );
+          gsap.to(displacement.sprite.position, {
             x: Setting.sceneWidth / 2,
             y: 500,
             duration: 1,
@@ -305,12 +353,37 @@ export default class DecoScene extends Pixi.Container {
           });
         }
       }
+      for (const displacement of this.displacements) {
+        if (displacement.charNumber === previousCharNumber) {
+          gsap.to(displacement.sprite.position, {
+            x: Setting.sceneWidth / 2 - Setting.sceneWidth,
+            y: 500,
+            duration: 1,
+          });
+        }
+        if (displacement.charNumber === this.charNumber) {
+          displacement.sprite.position.set(
+            Setting.sceneWidth / 2 + Setting.sceneWidth,
+            500
+          );
+          gsap.to(displacement.sprite.position, {
+            x: Setting.sceneWidth / 2,
+            y: 500,
+            duration: 1,
+          });
+        }
+      }
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "default") {
       for (const face of this.faces) {
         if (face.charNumber === this.charNumber) {
           face.sprite.position.set(Setting.sceneWidth / 2, 500);
+        }
+      }
+      for (const displacement of this.displacements) {
+        if (displacement.charNumber === this.charNumber) {
+          displacement.sprite.position.set(Setting.sceneWidth / 2, 500);
         }
       }
       this.faceMoveEnable(false);
@@ -430,13 +503,26 @@ export default class DecoScene extends Pixi.Container {
       face.sprite.destroy();
     }
     this.faces = [];
-    if (this.displacementSprite) {
-      this.displacementSprite.destroy();
-      this.displacementSprite = null;
-    }
     if (this.displacementFilter) {
-      this.displacementFilter.destroy();
-      this.displacementFilter = null;
+      for (const filter of this.displacementFilter) {
+        filter.destroy();
+      }
+      this.displacementFilter = [];
+    }
+  }
+
+  private destroyDisplacement() {
+    if (this.displacements && this.displacementFilter) {
+      for (let i = 0; i < this.displacements.length; i++) {
+        if (this.displacements[i] && this.displacementFilter[i]) {
+          this.displacementFilter[i].scale.x = 0;
+          this.displacementFilter[i].scale.y = 0;
+          this.removeChild(this.displacements[i].sprite);
+        }
+      }
+      this.displacementFilter = [];
+      this.displacements = [];
+      window.removeEventListener("mousemove", this.mouseMoveHandler.bind(this));
     }
   }
 
@@ -444,6 +530,7 @@ export default class DecoScene extends Pixi.Container {
     this.saveStore();
     this.destroyBackground();
     this.destroyButton();
+    this.destroyDisplacement();
     this.destroyFace();
     super.destroy();
   }
