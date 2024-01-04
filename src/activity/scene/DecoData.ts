@@ -10,6 +10,8 @@ export interface Face {
   displacement: Pixi.Sprite;
   sprite: Pixi.Sprite;
   graphic: SmoothGraphics;
+  hairSprite: Pixi.Sprite;
+  hairGraphic: SmoothGraphics;
   charNumber: number;
 }
 export interface FaceContainer {

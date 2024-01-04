@@ -132,6 +132,8 @@ export default class DecoDrawing extends Pixi.Container {
       );
       container.addChild(displacement);
 
+      this.filter = new OutlineFilter(2, 0x000000);
+
       const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
       const sprite = Pixi.Sprite.from(maskLoad);
       sprite.width = 650;
@@ -141,8 +143,6 @@ export default class DecoDrawing extends Pixi.Container {
 
       const graphic = new SmoothGraphics();
       graphic.mask = sprite;
-      this.filter = new OutlineFilter(2, 0x000000);
-      container.filters = [this.filter];
       graphic.beginFill(0xffffff, 1);
 
       graphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
@@ -150,12 +150,46 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.position.set(center.x, center.y);
       graphic.endFill();
       if (this.displacementFilter) {
-        graphic.filters = [this.displacementFilter[charNumber]];
+        graphic.filters = [this.displacementFilter[charNumber], this.filter];
       }
+      container.addChild(sprite);
       container.addChild(graphic);
-      graphic.addChild(sprite);
 
-      const face: Data.Face = { displacement, sprite, graphic, charNumber };
+      const hairMaskLoad = await Pixi.Assets.load("images/drawing/mini2.png");
+      const hairSprite = Pixi.Sprite.from(hairMaskLoad);
+      hairSprite.width = 700;
+      hairSprite.height = 200;
+      hairSprite.anchor.set(0.5);
+      hairSprite.position.set(
+        Setting.sceneWidth / 2,
+        Setting.sceneHeight / 2 - 250
+      );
+
+      const hairGraphic = new SmoothGraphics();
+      hairGraphic.mask = hairSprite;
+      hairGraphic.beginFill(0xffffff, 1);
+
+      hairGraphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
+      hairGraphic.pivot.set(center.x, center.y);
+      hairGraphic.position.set(center.x, center.y);
+      hairGraphic.endFill();
+      if (this.displacementFilter) {
+        hairGraphic.filters = [
+          this.displacementFilter[charNumber],
+          this.filter,
+        ];
+      }
+      container.addChild(hairSprite);
+      container.addChild(hairGraphic);
+
+      const face: Data.Face = {
+        displacement,
+        sprite,
+        graphic,
+        hairSprite,
+        hairGraphic,
+        charNumber,
+      };
       this.faces.push(face);
 
       this.addChild(container);
@@ -334,26 +368,31 @@ export default class DecoDrawing extends Pixi.Container {
     }
   }
 
-  private async destroyFace() {
-    for (const face of this.faces) {
-      face.graphic.removeChild(face.sprite);
-      face.displacement.texture.destroy(true);
+  private destroyFace() {
+    for (const { container, charNumber } of this.faceContainer) {
+      // 객체에 대한 참조를 제거
+      this.removeChild(container);
+
+      // 필터 제거
+      if (this.displacementFilter[charNumber]) {
+        this.displacementFilter[charNumber].destroy();
+      }
+
+      // face 데이터 제거
+      const face = this.faces.find((face) => face.charNumber === charNumber);
+      if (face) {
+        face.displacement.destroy();
+        face.sprite.destroy();
+        face.graphic.destroy();
+        face.hairSprite.destroy();
+        face.hairGraphic.destroy();
+      }
     }
 
-    for (const faceContainer of this.faceContainer) {
-      faceContainer.container.removeChildren();
-      faceContainer.container.filters = [];
-      this.removeChild(faceContainer.container);
-    }
-
-    if (this.filter) {
-      this.filter.destroy();
-      this.filter = null;
-    }
-
-    this.faces = [];
-    this.faceContainer = [];
+    // 배열 초기화
     this.displacementFilter = [];
+    this.faceContainer = [];
+    this.faces = [];
   }
 
   public destroy() {
