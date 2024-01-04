@@ -7,6 +7,7 @@ import { gsap } from "gsap";
 import * as Data from "./DecoData";
 import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
+import { OutlineFilter } from "@pixi/filter-outline";
 
 export default class DecoDrawing extends Pixi.Container {
   private down = false;
@@ -18,6 +19,7 @@ export default class DecoDrawing extends Pixi.Container {
   private rightButtonSprite: Pixi.Sprite | null = null;
   private faceMoving = false;
   private displacementFilter: Pixi.DisplacementFilter[] = [];
+  private filter: OutlineFilter | null = null;
   private charNumber = 0;
   private faceHeight = 0;
   private faceContainer: Data.FaceContainer[] = [];
@@ -139,6 +141,8 @@ export default class DecoDrawing extends Pixi.Container {
 
       const graphic = new SmoothGraphics();
       graphic.mask = sprite;
+      this.filter = new OutlineFilter(2, 0x000000);
+      container.filters = [this.filter];
       graphic.beginFill(0xffffff, 1);
 
       graphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
@@ -174,7 +178,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.off("pointerup", this.onPointerUp, this);
     this.off("pointerupoutside", this.onPointerUp, this);
     this.off("pointermove", this.pointerMoveHandler, this);
-}
+  }
 
   protected onPointerDown(e: Pixi.FederatedEvent) {
     this.down = true;
@@ -265,7 +269,10 @@ export default class DecoDrawing extends Pixi.Container {
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "default") {
-      this.faceContainer[this.charNumber].container.position.set(650, 390);
+      this.faceContainer[this.charNumber].container.position.set(
+        Setting.sceneWidth / 2,
+        Setting.sceneHeight / 2
+      );
       this.faceMoveEnable(false);
     }
     this.saveStore();
@@ -327,17 +334,26 @@ export default class DecoDrawing extends Pixi.Container {
     }
   }
 
-  private destroyFace() {
+  private async destroyFace() {
     for (const face of this.faces) {
-      face.sprite.destroy();
+      face.graphic.removeChild(face.sprite);
+      face.displacement.texture.destroy(true);
     }
+
+    for (const faceContainer of this.faceContainer) {
+      faceContainer.container.removeChildren();
+      faceContainer.container.filters = [];
+      this.removeChild(faceContainer.container);
+    }
+
+    if (this.filter) {
+      this.filter.destroy();
+      this.filter = null;
+    }
+
     this.faces = [];
-    if (this.displacementFilter) {
-      for (const filter of this.displacementFilter) {
-        filter.destroy();
-      }
-      this.displacementFilter = [];
-    }
+    this.faceContainer = [];
+    this.displacementFilter = [];
   }
 
   public destroy() {

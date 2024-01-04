@@ -22,6 +22,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@pixi/filter-outline": "^5.2.0",
 		"@pixi/graphics-smooth": "^1.1.0",
 		"@pixi/sound": "^5.2.2",
 		"@sveltejs/adapter-static": "^3.0.1",
