@@ -9,8 +9,6 @@ import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 
 export default class DecoDrawing extends Pixi.Container {
-  private maskSprite: Pixi.Sprite | null = null;
-  private graphicDraw: SmoothGraphics | null = null;
   private down = false;
   private erase = false;
   private prevX = 0;
@@ -22,12 +20,19 @@ export default class DecoDrawing extends Pixi.Container {
   private faceMoving = false;
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private charNumber = 0;
+  private faceHeight = 0;
+  private faceContainer: Data.FaceContainer[] = [];
 
   constructor(scene: DecoScene) {
     super();
-    this.setupDrawing();
+    this.initialize();
+  }
+
+  private async initialize() {
+    this.faceHeight = 400;
+    // this.setupDrawing();
     this.setDisplacement();
-    this.setFaces();
+    await this.setFaces();
     this.setFacesPosition("default");
     this.setButton();
     this.loadStore();
@@ -45,22 +50,22 @@ export default class DecoDrawing extends Pixi.Container {
     const displacementData = [
       {
         imagePath: "images/scene/map1.jpg",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 0,
       },
       {
         imagePath: "images/scene/map2.jpg",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 1,
       },
       {
         imagePath: "images/scene/map3.jpg",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 2,
       },
       {
         imagePath: "images/scene/map4.jpg",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 3,
       },
     ];
@@ -80,7 +85,7 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacements.push(displacement);
     }
     window.addEventListener("pointermove", (event) => {
-        this.pointerMoveHandler.bind(this)(event);
+      this.pointerMoveHandler.bind(this)(event);
     });
   }
 
@@ -93,7 +98,7 @@ export default class DecoDrawing extends Pixi.Container {
     ) {
       return;
     }
-  
+
     if (this.displacementFilter[this.charNumber]) {
       const midpointX = Setting.sceneWidth / 2,
         midpointY = Setting.sceneHeight / 2,
@@ -105,46 +110,110 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacementFilter[this.charNumber].scale.y = valY;
     }
   }
-  
 
-  private setFaces() {
+  private async setFaces() {
+    this.eventMode = "static";
+    this.on("pointerdown", this.onPointerDown, this);
+    this.on("pointermove", this.onPointerMove, this);
+    this.on("pointerup", this.onPointerUp, this);
+    this.on("pointerupoutside", this.onPointerUp, this);
+
     const faceData = [
       {
         imagePath: "images/scene/face1.png",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 0,
       },
       {
         imagePath: "images/scene/face2.png",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 1,
       },
       {
         imagePath: "images/scene/face3.png",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 2,
       },
       {
         imagePath: "images/scene/face4.png",
-        position: { x: -1000, y: 500 },
+        position: { x: -1000, y: this.faceHeight },
         charNumber: 3,
       },
     ];
 
     for (const { imagePath, position, charNumber } of faceData) {
-      const sprite = Pixi.Sprite.from(imagePath);
+      const container = new Pixi.Container();
+      container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
+      container.position.set(-1000, this.faceHeight);
+
+      const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
+      const sprite = Pixi.Sprite.from(maskLoad);
       sprite.width = 650;
       sprite.height = 700;
       sprite.anchor.set(0.5);
-      sprite.position.set(position.x, position.y);
-      if (this.displacementFilter) {
-        sprite.filters = [this.displacementFilter[charNumber]];
-      }
-      this.addChild(sprite);
+      sprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
 
-      const face: Data.Face = { sprite, charNumber };
+      const graphic = new SmoothGraphics();
+      graphic.mask = sprite;
+      graphic.beginFill(0xffffff, 1);
+
+      const center = {
+        x: Setting.sceneWidth / 2,
+        y: Setting.sceneHeight / 2,
+      };
+
+      const maskHalf = {
+        width: sprite.width / 2,
+        height: sprite.height / 2,
+      };
+
+      graphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
+      graphic.pivot.set(center.x, center.y);
+      graphic.position.set(center.x, center.y);
+      graphic.endFill();
+      if (this.displacementFilter) {
+        graphic.filters = [this.displacementFilter[charNumber]];
+      }
+      container.addChild(graphic);
+      graphic.addChild(sprite);
+
+      const face: Data.Face = { sprite, graphic, charNumber };
       this.faces.push(face);
+
+      this.addChild(container);
+      const faceContainer: Data.FaceContainer = { container, charNumber };
+      this.faceContainer.push(faceContainer);
     }
+  }
+
+  protected onPointerDown(e: Pixi.FederatedEvent) {
+    this.down = true;
+    this.prevX = e.pageX - this.x;
+    this.prevY = e.pageY - this.y;
+  }
+
+  protected onPointerMove(e: Pixi.FederatedEvent) {
+    if (this.down) {
+      const board = this.faces[this.charNumber].graphic;
+      if (board) {
+        board.lineStyle({
+          width: 10,
+          color: 0x000000,
+          cap: Pixi.LINE_CAP.ROUND,
+          join: Pixi.LINE_JOIN.ROUND,
+          scaleMode: LINE_SCALE_MODE.NONE,
+        });
+        board.moveTo(this.prevX, this.prevY);
+        board.lineTo(e.pageX - this.x, e.pageY - this.y);
+        this.prevX = e.pageX - this.x;
+        this.prevY = e.pageY - this.y;
+      }
+    }
+  }
+
+  protected onPointerUp(e: Pixi.FederatedEvent) {
+    this.down = false;
+    this.erase = !this.erase;
   }
 
   private async setFacesPosition(direction: string) {
@@ -160,17 +229,17 @@ export default class DecoDrawing extends Pixi.Container {
         if (face.charNumber === previousCharNumber) {
           gsap.to(face.sprite.position, {
             x: Setting.sceneWidth / 2 + Setting.sceneWidth,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         } else if (face.charNumber === this.charNumber) {
           face.sprite.position.set(
             Setting.sceneWidth / 2 - Setting.sceneWidth,
-            500
+            this.faceHeight
           );
           gsap.to(face.sprite.position, {
             x: Setting.sceneWidth / 2,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         }
@@ -179,17 +248,17 @@ export default class DecoDrawing extends Pixi.Container {
         if (displacement.charNumber === previousCharNumber) {
           gsap.to(displacement.sprite.position, {
             x: Setting.sceneWidth / 2 + Setting.sceneWidth,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         } else if (displacement.charNumber === this.charNumber) {
           displacement.sprite.position.set(
             Setting.sceneWidth / 2 - Setting.sceneWidth,
-            500
+            this.faceHeight
           );
           gsap.to(displacement.sprite.position, {
             x: Setting.sceneWidth / 2,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         }
@@ -206,18 +275,18 @@ export default class DecoDrawing extends Pixi.Container {
         if (face.charNumber === previousCharNumber) {
           gsap.to(face.sprite.position, {
             x: Setting.sceneWidth / 2 - Setting.sceneWidth,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         }
         if (face.charNumber === this.charNumber) {
           face.sprite.position.set(
             Setting.sceneWidth / 2 + Setting.sceneWidth,
-            500
+            this.faceHeight
           );
           gsap.to(face.sprite.position, {
             x: Setting.sceneWidth / 2,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         }
@@ -226,18 +295,18 @@ export default class DecoDrawing extends Pixi.Container {
         if (displacement.charNumber === previousCharNumber) {
           gsap.to(displacement.sprite.position, {
             x: Setting.sceneWidth / 2 - Setting.sceneWidth,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         }
         if (displacement.charNumber === this.charNumber) {
           displacement.sprite.position.set(
             Setting.sceneWidth / 2 + Setting.sceneWidth,
-            500
+            this.faceHeight
           );
           gsap.to(displacement.sprite.position, {
             x: Setting.sceneWidth / 2,
-            y: 500,
+            y: this.faceHeight,
             duration: 1,
           });
         }
@@ -245,14 +314,18 @@ export default class DecoDrawing extends Pixi.Container {
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "default") {
-      for (const face of this.faces) {
-        if (face.charNumber === this.charNumber) {
-          face.sprite.position.set(Setting.sceneWidth / 2, 500);
-        }
-      }
+      // for (const face of this.faces) {
+      //   if (face.charNumber === this.charNumber) {
+      //     face.sprite.position.set(Setting.sceneWidth / 2, this.faceHeight);
+      //   }
+      // }
+      this.faceContainer[this.charNumber].container.position.set(650, 390);
       for (const displacement of this.displacements) {
         if (displacement.charNumber === this.charNumber) {
-          displacement.sprite.position.set(Setting.sceneWidth / 2, 500);
+          displacement.sprite.position.set(
+            Setting.sceneWidth / 2,
+            this.faceHeight
+          );
         }
       }
       this.faceMoveEnable(false);
@@ -302,77 +375,6 @@ export default class DecoDrawing extends Pixi.Container {
       }
     });
     this.addChild(this.rightButtonSprite);
-  }
-
-  private async setupDrawing() {
-    this.eventMode = "static";
-    this.on("pointerdown", this.onPointerDown, this);
-    this.on("pointermove", this.onPointerMove, this);
-    this.on("pointerup", this.onPointerUp, this);
-    this.on("pointerupoutside", this.onPointerUp, this);
-
-    const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
-    this.maskSprite = Pixi.Sprite.from(maskLoad);
-    this.maskSprite.anchor.set(0.5);
-    this.maskSprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
-    // this.interactive = true;
-    // this.hitArea = new Pixi.Rectangle(
-    //   0,
-    //   0,
-    //   this.maskSprite.width,
-    //   this.maskSprite.width
-    // );
-    this.graphicDraw = new SmoothGraphics();
-    this.graphicDraw.mask = this.maskSprite;
-    this.graphicDraw.beginFill(0xffffff, 1);
-
-    const center = {
-        x: Setting.sceneWidth / 2,
-        y: Setting.sceneHeight / 2
-    }
-
-    const maskHalf = {
-        width: this.maskSprite.width / 2,
-        height: this.maskSprite.height / 2
-    }
-
-    this.graphicDraw.drawRect(
-      center.x - maskHalf.width,
-      center.y - maskHalf.height,
-      center.x + maskHalf.width,
-      center.y + maskHalf.height
-    );
-    this.graphicDraw.endFill();
-    this.addChild(this.maskSprite, this.graphicDraw);
-  }
-
-  protected onPointerDown(e: Pixi.FederatedEvent) {
-    this.down = true;
-    this.prevX = e.pageX - this.x;
-    this.prevY = e.pageY - this.y;
-  }
-
-  protected onPointerMove(e: Pixi.FederatedEvent) {
-    if (this.down) {
-      if (this.graphicDraw) {
-        this.graphicDraw.lineStyle({
-          width: 10,
-          color: 0x000000,
-          cap: Pixi.LINE_CAP.ROUND,
-          join: Pixi.LINE_JOIN.ROUND,
-          scaleMode: LINE_SCALE_MODE.NONE,
-        });
-        this.graphicDraw.moveTo(this.prevX, this.prevY);
-        this.graphicDraw.lineTo(e.pageX - this.x, e.pageY - this.y);
-        this.prevX = e.pageX - this.x;
-        this.prevY = e.pageY - this.y;
-      }
-    }
-  }
-
-  protected onPointerUp(e: Pixi.FederatedEvent) {
-    this.down = false;
-    this.erase = !this.erase;
   }
 
   private destroyButton() {

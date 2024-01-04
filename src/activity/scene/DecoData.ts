@@ -1,4 +1,5 @@
 import * as Pixi from "pixi.js";
+import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 
 export interface Position {
   x: number;
@@ -7,6 +8,11 @@ export interface Position {
 
 export interface Face {
   sprite: Pixi.Sprite;
+  graphic: SmoothGraphics;
+  charNumber: number;
+}
+export interface FaceContainer {
+  container: Pixi.Container;
   charNumber: number;
 }
 
