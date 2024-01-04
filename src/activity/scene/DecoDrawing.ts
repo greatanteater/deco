@@ -223,21 +223,21 @@ export default class DecoDrawing extends Pixi.Container {
       const previousCharNumber = this.charNumber;
       this.charNumber = this.charNumber - 1;
       if (this.charNumber < 0) {
-        this.charNumber = this.faces.length - 1;
+        this.charNumber = this.faceContainer.length - 1;
       }
-      for (const face of this.faces) {
-        if (face.charNumber === previousCharNumber) {
-          gsap.to(face.sprite.position, {
+      for (const faceContainer of this.faceContainer) {
+        if (faceContainer.charNumber === previousCharNumber) {
+          gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2 + Setting.sceneWidth,
             y: this.faceHeight,
             duration: 1,
           });
-        } else if (face.charNumber === this.charNumber) {
-          face.sprite.position.set(
+        } else if (faceContainer.charNumber === this.charNumber) {
+          faceContainer.container.position.set(
             Setting.sceneWidth / 2 - Setting.sceneWidth,
             this.faceHeight
           );
-          gsap.to(face.sprite.position, {
+          gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2,
             y: this.faceHeight,
             duration: 1,
@@ -268,23 +268,23 @@ export default class DecoDrawing extends Pixi.Container {
     } else if (direction === "left") {
       const previousCharNumber = this.charNumber;
       this.charNumber = this.charNumber + 1;
-      if (this.charNumber >= this.faces.length) {
+      if (this.charNumber >= this.faceContainer.length) {
         this.charNumber = 0;
       }
-      for (const face of this.faces) {
-        if (face.charNumber === previousCharNumber) {
-          gsap.to(face.sprite.position, {
+      for (const faceContainer of this.faceContainer) {
+        if (faceContainer.charNumber === previousCharNumber) {
+          gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2 - Setting.sceneWidth,
             y: this.faceHeight,
             duration: 1,
           });
         }
-        if (face.charNumber === this.charNumber) {
-          face.sprite.position.set(
+        if (faceContainer.charNumber === this.charNumber) {
+          faceContainer.container.position.set(
             Setting.sceneWidth / 2 + Setting.sceneWidth,
             this.faceHeight
           );
-          gsap.to(face.sprite.position, {
+          gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2,
             y: this.faceHeight,
             duration: 1,
@@ -314,11 +314,6 @@ export default class DecoDrawing extends Pixi.Container {
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "default") {
-      // for (const face of this.faces) {
-      //   if (face.charNumber === this.charNumber) {
-      //     face.sprite.position.set(Setting.sceneWidth / 2, this.faceHeight);
-      //   }
-      // }
       this.faceContainer[this.charNumber].container.position.set(650, 390);
       for (const displacement of this.displacements) {
         if (displacement.charNumber === this.charNumber) {
