@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import PixiApp from "../activity/PixiApp";
-  import PixiDrawingApp from "../activity/PixiDrawingApp";
 
   let canvas: HTMLCanvasElement;
 

@@ -4,16 +4,20 @@ import { wait } from "../util/Util";
 import { get } from "svelte/store";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-import * as Data from "./DecoSceneData";
-import DecoScene from "./DecoScene";
+import * as Data from "./DecoData";
 
-export default class StickerManager extends Pixi.Container {
+export default class Sticker extends Pixi.Container {
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Data.Sticker[] = [];
+  private charNumber = 0;
 
   constructor() {
     super();
     this.setStickerHive();
+
+    characterNumber.subscribe((value) => {
+      this.setPositonStickers(value);
+    });
   }
 
   private setStickerHive() {
@@ -23,6 +27,7 @@ export default class StickerManager extends Pixi.Container {
     this.stickerHive.endFill();
     this.stickerHive.pivot.set(60, 225);
     this.stickerHive.position.set(1200, 300);
+    this.addChild(this.stickerHive);
 
     for (let i = 1; i <= 4; i++) {
       let sticker: Data.Sticker = {
@@ -56,12 +61,54 @@ export default class StickerManager extends Pixi.Container {
       sticker.mouse.sprite.anchor.set(0.5);
       this.stickers.push(sticker);
     }
+
+    for (let sticker of this.stickers) {
+      this.addChild(sticker.eye.sprite);
+      this.addChild(sticker.nose.sprite);
+      this.addChild(sticker.mouse.sprite);
+    }
   }
 
-  public getStickerData() {
-    return {
-      stickers: this.stickers,
-      stickerHive: this.stickerHive
-    };
+  private setPositonStickers(number: number) {
+    this.stickers.forEach((sticker: Data.Sticker, i: number) => {
+      if (i === number) {
+        sticker.eye.sprite.position.set(
+          sticker.eye.position.x,
+          sticker.eye.position.y
+        );
+        sticker.nose.sprite.position.set(
+          sticker.nose.position.x,
+          sticker.nose.position.y
+        );
+        sticker.mouse.sprite.position.set(
+          sticker.mouse.position.x,
+          sticker.mouse.position.y
+        );
+      } else {
+        sticker.eye.sprite.position.set(-1000, 500);
+        sticker.nose.sprite.position.set(-1000, 500);
+        sticker.mouse.sprite.position.set(-1000, 500);
+      }
+    });
+  }
+
+  private destroyStickerHive() {
+    if (this.stickerHive) {
+      this.removeChild(this.stickerHive);
+      this.stickerHive = null;
+    }
+
+    for (let sticker of this.stickers) {
+      this.removeChild(sticker.eye.sprite);
+      this.removeChild(sticker.nose.sprite);
+      this.removeChild(sticker.mouse.sprite);
+    }
+
+    this.stickers = [];
+  }
+
+  public destroy() {
+    this.destroyStickerHive();
+    super.destroy();
   }
 }
