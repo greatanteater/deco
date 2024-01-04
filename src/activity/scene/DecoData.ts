@@ -7,17 +7,13 @@ export interface Position {
 }
 
 export interface Face {
+  displacement: Pixi.Sprite;
   sprite: Pixi.Sprite;
   graphic: SmoothGraphics;
   charNumber: number;
 }
 export interface FaceContainer {
   container: Pixi.Container;
-  charNumber: number;
-}
-
-export interface Displacement {
-  sprite: Pixi.Sprite;
   charNumber: number;
 }
 

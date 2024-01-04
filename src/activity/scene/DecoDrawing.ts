@@ -14,7 +14,6 @@ export default class DecoDrawing extends Pixi.Container {
   private prevX = 0;
   private prevY = 0;
   private faces: Data.Face[] = [];
-  private displacements: Data.Displacement[] = [];
   private leftButtonSprite: Pixi.Sprite | null = null;
   private rightButtonSprite: Pixi.Sprite | null = null;
   private faceMoving = false;
@@ -29,13 +28,13 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private async initialize() {
+    this.eventMode = "static";
     this.faceHeight = 400;
-    // this.setupDrawing();
-    this.setDisplacement();
     await this.setFaces();
     this.setFacesPosition("default");
     this.setButton();
     this.loadStore();
+    this.setUpEventListeners();
   }
 
   private loadStore() {
@@ -44,49 +43,6 @@ export default class DecoDrawing extends Pixi.Container {
 
   private saveStore() {
     characterNumber.set(this.charNumber);
-  }
-
-  private setDisplacement() {
-    const displacementData = [
-      {
-        imagePath: "images/scene/map1.jpg",
-        position: { x: -1000, y: this.faceHeight },
-        charNumber: 0,
-      },
-      {
-        imagePath: "images/scene/map2.jpg",
-        position: { x: -1000, y: this.faceHeight },
-        charNumber: 1,
-      },
-      {
-        imagePath: "images/scene/map3.jpg",
-        position: { x: -1000, y: this.faceHeight },
-        charNumber: 2,
-      },
-      {
-        imagePath: "images/scene/map4.jpg",
-        position: { x: -1000, y: this.faceHeight },
-        charNumber: 3,
-      },
-    ];
-
-    for (const { imagePath, position, charNumber } of displacementData) {
-      const sprite = Pixi.Sprite.from(imagePath);
-      sprite.width = 650;
-      sprite.height = 700;
-      sprite.anchor.set(0.5);
-      sprite.scale.set(0.5);
-      sprite.position.set(position.x, position.y);
-      sprite.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
-      this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(sprite);
-      this.addChild(sprite);
-
-      const displacement: Data.Displacement = { sprite, charNumber };
-      this.displacements.push(displacement);
-    }
-    window.addEventListener("pointermove", (event) => {
-      this.pointerMoveHandler.bind(this)(event);
-    });
   }
 
   private pointerMoveHandler(event: PointerEvent) {
@@ -112,11 +68,20 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private async setFaces() {
-    this.eventMode = "static";
-    this.on("pointerdown", this.onPointerDown, this);
-    this.on("pointermove", this.onPointerMove, this);
-    this.on("pointerup", this.onPointerUp, this);
-    this.on("pointerupoutside", this.onPointerUp, this);
+    const displacementData = [
+      {
+        imagePath: "images/scene/map1.jpg",
+      },
+      {
+        imagePath: "images/scene/map2.jpg",
+      },
+      {
+        imagePath: "images/scene/map3.jpg",
+      },
+      {
+        imagePath: "images/scene/map4.jpg",
+      },
+    ];
 
     const faceData = [
       {
@@ -141,10 +106,29 @@ export default class DecoDrawing extends Pixi.Container {
       },
     ];
 
+    const center = {
+      x: Setting.sceneWidth / 2,
+      y: Setting.sceneHeight / 2,
+    };
+
     for (const { imagePath, position, charNumber } of faceData) {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
       container.position.set(-1000, this.faceHeight);
+
+      const displacement = Pixi.Sprite.from(
+        displacementData[charNumber].imagePath
+      );
+      displacement.width = 650;
+      displacement.height = 700;
+      displacement.anchor.set(0.5);
+      displacement.scale.set(0.5);
+      displacement.position.set(center.x, center.y);
+      displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
+      this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
+        displacement
+      );
+      container.addChild(displacement);
 
       const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
       const sprite = Pixi.Sprite.from(maskLoad);
@@ -157,16 +141,6 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.mask = sprite;
       graphic.beginFill(0xffffff, 1);
 
-      const center = {
-        x: Setting.sceneWidth / 2,
-        y: Setting.sceneHeight / 2,
-      };
-
-      const maskHalf = {
-        width: sprite.width / 2,
-        height: sprite.height / 2,
-      };
-
       graphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
       graphic.pivot.set(center.x, center.y);
       graphic.position.set(center.x, center.y);
@@ -177,7 +151,7 @@ export default class DecoDrawing extends Pixi.Container {
       container.addChild(graphic);
       graphic.addChild(sprite);
 
-      const face: Data.Face = { sprite, graphic, charNumber };
+      const face: Data.Face = { displacement, sprite, graphic, charNumber };
       this.faces.push(face);
 
       this.addChild(container);
@@ -185,6 +159,22 @@ export default class DecoDrawing extends Pixi.Container {
       this.faceContainer.push(faceContainer);
     }
   }
+
+  private setUpEventListeners() {
+    this.on("pointerdown", this.onPointerDown, this);
+    this.on("pointermove", this.onPointerMove, this);
+    this.on("pointerup", this.onPointerUp, this);
+    this.on("pointerupoutside", this.onPointerUp, this);
+    this.on("pointermove", this.pointerMoveHandler, this);
+  }
+
+  private tearDownEventListeners() {
+    this.off("pointerdown", this.onPointerDown, this);
+    this.off("pointermove", this.onPointerMove, this);
+    this.off("pointerup", this.onPointerUp, this);
+    this.off("pointerupoutside", this.onPointerUp, this);
+    this.off("pointermove", this.pointerMoveHandler, this);
+}
 
   protected onPointerDown(e: Pixi.FederatedEvent) {
     this.down = true;
@@ -244,25 +234,6 @@ export default class DecoDrawing extends Pixi.Container {
           });
         }
       }
-      for (const displacement of this.displacements) {
-        if (displacement.charNumber === previousCharNumber) {
-          gsap.to(displacement.sprite.position, {
-            x: Setting.sceneWidth / 2 + Setting.sceneWidth,
-            y: this.faceHeight,
-            duration: 1,
-          });
-        } else if (displacement.charNumber === this.charNumber) {
-          displacement.sprite.position.set(
-            Setting.sceneWidth / 2 - Setting.sceneWidth,
-            this.faceHeight
-          );
-          gsap.to(displacement.sprite.position, {
-            x: Setting.sceneWidth / 2,
-            y: this.faceHeight,
-            duration: 1,
-          });
-        }
-      }
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "left") {
@@ -291,38 +262,10 @@ export default class DecoDrawing extends Pixi.Container {
           });
         }
       }
-      for (const displacement of this.displacements) {
-        if (displacement.charNumber === previousCharNumber) {
-          gsap.to(displacement.sprite.position, {
-            x: Setting.sceneWidth / 2 - Setting.sceneWidth,
-            y: this.faceHeight,
-            duration: 1,
-          });
-        }
-        if (displacement.charNumber === this.charNumber) {
-          displacement.sprite.position.set(
-            Setting.sceneWidth / 2 + Setting.sceneWidth,
-            this.faceHeight
-          );
-          gsap.to(displacement.sprite.position, {
-            x: Setting.sceneWidth / 2,
-            y: this.faceHeight,
-            duration: 1,
-          });
-        }
-      }
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "default") {
       this.faceContainer[this.charNumber].container.position.set(650, 390);
-      for (const displacement of this.displacements) {
-        if (displacement.charNumber === this.charNumber) {
-          displacement.sprite.position.set(
-            Setting.sceneWidth / 2,
-            this.faceHeight
-          );
-        }
-      }
       this.faceMoveEnable(false);
     }
     this.saveStore();
@@ -397,27 +340,9 @@ export default class DecoDrawing extends Pixi.Container {
     }
   }
 
-  private destroyDisplacement() {
-    if (this.displacements && this.displacementFilter) {
-      for (let i = 0; i < this.displacements.length; i++) {
-        if (this.displacements[i] && this.displacementFilter[i]) {
-          this.displacementFilter[i].scale.x = 0;
-          this.displacementFilter[i].scale.y = 0;
-          this.removeChild(this.displacements[i].sprite);
-        }
-      }
-      this.displacementFilter = [];
-      this.displacements = [];
-      window.removeEventListener(
-        "pointermove",
-        this.pointerMoveHandler.bind(this)
-      );
-    }
-  }
-
   public destroy() {
+    this.tearDownEventListeners();
     this.destroyButton();
-    this.destroyDisplacement();
     this.destroyFace();
     super.destroy();
   }
