@@ -5,16 +5,22 @@ import { get } from "svelte/store";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import * as Data from "./DecoData";
+import DecoScene from './DecoScene';
 
 export default class Sticker extends Pixi.Container {
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Data.Sticker[] = [];
   private charNumber = 0;
+  private dragging = false;
+  private draggingSprite: Pixi.Sprite | null = null;
+  private prevX = 0;
+  private prevY = 0;
+  private scene: DecoScene;
 
-  constructor() {
+  constructor(scene: DecoScene) {
     super();
+    this.scene = scene;
     this.setStickerHive();
-
     characterNumber.subscribe((value) => {
       this.setPositonStickers(value);
     });
@@ -66,6 +72,10 @@ export default class Sticker extends Pixi.Container {
       this.addChild(sticker.eye.sprite);
       this.addChild(sticker.nose.sprite);
       this.addChild(sticker.mouse.sprite);
+
+      this.setDragAndDrop(sticker.eye.sprite);
+      this.setDragAndDrop(sticker.nose.sprite);
+      this.setDragAndDrop(sticker.mouse.sprite);
     }
   }
 
@@ -90,6 +100,37 @@ export default class Sticker extends Pixi.Container {
         sticker.mouse.sprite.position.set(-1000, 500);
       }
     });
+  }
+
+  private setDragAndDrop(sprite: Pixi.Sprite) {
+    sprite.interactive = true;
+    sprite.eventMode = "static";
+    sprite.cursor = "pointer";
+
+    sprite.on("pointerdown", this.onDragStart, this);
+    this.scene.on("pointerup", this.onDragEnd, this);
+    this.scene.on("pointerupoutside", this.onDragEnd, this);
+    this.scene.on("pointermove", this.onDragMove, this);
+  }
+
+  private onDragStart(e: Pixi.FederatedPointerEvent) {
+    this.dragging = true;
+    this.draggingSprite = e.currentTarget as Pixi.Sprite;  }
+
+  private onDragEnd() {
+    this.dragging = false;
+  }
+
+  private onDragMove(e: Pixi.FederatedPointerEvent) {
+    if (!this.dragging) return;
+    
+    if (this.draggingSprite) {
+      this.prevX = e.globalX - this.x;
+      this.prevY = e.globalY - this.y;
+
+      this.draggingSprite.x = this.prevX;
+      this.draggingSprite.y = this.prevY;
+    }
   }
 
   private destroyStickerHive() {

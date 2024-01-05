@@ -15,6 +15,7 @@ export default class DecoScene extends Pixi.Container {
 
   constructor() {
     super();
+    this.interactive = true;
     this.initialize();
   }
 
@@ -43,7 +44,7 @@ export default class DecoScene extends Pixi.Container {
   }
 
   private runSticker() {
-    this.sticker = new Sticker();
+    this.sticker = new Sticker(this);
     this.addChild(this.sticker);
   }
 
