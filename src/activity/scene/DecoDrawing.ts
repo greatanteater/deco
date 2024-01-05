@@ -52,7 +52,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.setUpEventListeners();
     this.faceFeatures();
     // this.greatBoard();
-    this.startDisplacement();
+    // this.startDisplacement();
   }
 
   private setUpEventListeners() {
