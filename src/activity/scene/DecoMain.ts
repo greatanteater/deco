@@ -20,7 +20,7 @@ export default class DecoMain extends Pixi.Container {
   private runScene() {
     this.setBackground();
     this.setChars();
-    this.setSound();
+    // this.setSound();
   }
 
   private setSound() {

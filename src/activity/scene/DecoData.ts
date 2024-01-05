@@ -50,6 +50,7 @@ export interface mouse {
 
 export const hairCoordinates: HairCoordinate[] = [
   {
+    // 1번 캐릭터
     coordinates: [
       { x: 828, y: 71.66667175292969 },
       { x: 816.6666870117188, y: 71.66667175292969 },
@@ -126,4 +127,16 @@ export const hairCoordinates: HairCoordinate[] = [
       { x: 848.6666870117188, y: 77.66667175292969 },
     ],
   },
+  {
+    // 2번 캐릭터
+    coordinates: []
+  },
+  {
+    // 3번 캐릭터
+    coordinates: []
+  },
+  {
+    // 4번 캐릭터
+    coordinates: []
+  }
 ];
