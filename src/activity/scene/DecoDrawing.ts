@@ -55,19 +55,6 @@ export default class DecoDrawing extends Pixi.Container {
     this.startDisplacement();
   }
 
-  private startDisplacement() {
-    if (this.displacementFilter[this.charNumber]) {
-      const midpointX = Setting.sceneWidth / 2,
-        midpointY = Setting.sceneHeight / 2,
-        posX = 0,
-        posY = 0,
-        valX = (posX / midpointX) * 30,
-        valY = (posY / midpointY) * 17;
-      this.displacementFilter[this.charNumber].scale.x = valX;
-      this.displacementFilter[this.charNumber].scale.y = valY;
-    }
-  }
-
   private setUpEventListeners() {
     this.on("pointerdown", this.onPointerDown, this);
     this.on("pointermove", this.onPointerMove, this);
@@ -82,6 +69,19 @@ export default class DecoDrawing extends Pixi.Container {
     this.off("pointerup", this.onPointerUp, this);
     this.off("pointerupoutside", this.onPointerUp, this);
     this.off("pointermove", this.pointerMoveHandler, this);
+  }
+
+  private startDisplacement() {
+    if (this.displacementFilter[this.charNumber]) {
+      const midpointX = Setting.sceneWidth / 2,
+        midpointY = Setting.sceneHeight / 2,
+        posX = 0,
+        posY = 0,
+        valX = (posX / midpointX) * 30,
+        valY = (posY / midpointY) * 17;
+      this.displacementFilter[this.charNumber].scale.x = valX;
+      this.displacementFilter[this.charNumber].scale.y = valY;
+    }
   }
 
   private loadStore() {
