@@ -6,6 +6,15 @@ export interface Position {
   y: number;
 }
 
+interface FaceFeaturePositions {
+  eyes: {
+    left: Position;
+    right: Position;
+  };
+  nose: Position;
+  mouth: Position;
+}
+
 export interface HairCoordinate {
   coordinates: Position[];
 }
@@ -25,28 +34,71 @@ export interface FaceContainer {
 }
 
 export interface Sticker {
-  eye: eye;
-  nose: nose;
-  mouse: mouse;
+  eye: Eye;
+  nose: Nose;
+  mouse: Mouse;
 }
 
-export interface eye {
+export interface Eyes {
+  left: Eye;
+  right: Eye;
+}
+export interface Eye {
   sprite: Pixi.Sprite;
   path: string;
   position: Position;
 }
 
-export interface nose {
+export interface Nose {
   sprite: Pixi.Sprite;
   path: string;
   position: Position;
 }
 
-export interface mouse {
+export interface Mouse {
   sprite: Pixi.Sprite;
   path: string;
   position: Position;
 }
+
+export const faceFeaturePositions: FaceFeaturePositions[] = [
+  {
+    // 1번 캐릭터
+    eyes: {
+      left: { x: 536, y: 320 },
+      right: { x: 760, y: 320 }
+    },
+    nose: { x: 0, y:0 },
+    mouth: { x: 0, y:0 }
+  },
+  {
+    // 2번 캐릭터
+    eyes: {
+      left: { x: 536, y: 320 },
+      right: { x: 760, y: 320 }
+    },
+    nose: { x: 0, y:0 },
+    mouth: { x: 0, y:0 }
+  },
+  {
+    // 3번 캐릭터
+    eyes: {
+      left: { x: 536, y: 320 },
+      right: { x: 760, y: 320 }
+    },
+    nose: { x: 0, y:0 },
+    mouth: { x: 0, y:0 }
+  },
+  {
+    // 4번 캐릭터
+    eyes: {
+      left: { x: 536, y: 320 },
+      right: { x: 760, y: 320 }
+    },
+    nose: { x: 0, y:0 },
+    mouth: { x: 0, y:0 }
+  }
+]
 
 export const hairCoordinates: HairCoordinate[] = [
   {
@@ -129,14 +181,14 @@ export const hairCoordinates: HairCoordinate[] = [
   },
   {
     // 2번 캐릭터
-    coordinates: []
+    coordinates: [],
   },
   {
     // 3번 캐릭터
-    coordinates: []
+    coordinates: [],
   },
   {
     // 4번 캐릭터
-    coordinates: []
-  }
+    coordinates: [],
+  },
 ];

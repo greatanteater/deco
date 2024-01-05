@@ -2,7 +2,7 @@ import * as Pixi from 'pixi.js';
 import Setting from '../base/Setting';
 import { wait } from '../util/Util';
 import { get } from 'svelte/store';
-import { currentView, characterNumber } from '../store/store';
+import { currentView, characterNumber, eyesAttachedStatus } from '../store/store';
 import { gsap } from 'gsap';
 import * as Data from './DecoData';
 import DecoScene from './DecoScene';
@@ -24,10 +24,17 @@ export default class DecoDrawing extends Pixi.Container {
   private faceHeight = 0;
   private faceContainer: Data.FaceContainer[] = [];
   private drawTarget: string = '';
+  private eyes: Data.Eyes[] = [];
+  private nose: Data.Nose[] = [];
+  private mouse: Data.Mouse[] = [];
 
   constructor(scene: DecoScene) {
     super();
     this.initialize();
+
+    eyesAttachedStatus.subscribe((value) => {
+      this.attachEyeToFace(value[this.charNumber]);
+    });
   }
 
   private async initialize() {
@@ -39,7 +46,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
-    // this.greatBoard();
+    this.faceFeatures();
   }
 
   private setUpEventListeners() {
@@ -255,8 +262,6 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   protected onPointerDown(e: Pixi.FederatedPointerEvent) {
-    console.log(`x: ${e.globalY}, y:${e.globalY}`);
-
     this.down = true;
     this.prevX = e.globalX - this.x;
     this.prevY = e.globalY - this.y;
@@ -409,6 +414,42 @@ export default class DecoDrawing extends Pixi.Container {
       }
     });
     this.addChild(this.rightButtonSprite);
+  }
+
+  private faceFeatures() {
+    for (let i = 0; i < 4; i++) {
+      const eyes: Data.Eyes = {
+        left: {
+          sprite: new Pixi.Sprite(Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)),
+          path: `images/scene/eye${i}.png`,
+          position: Data.faceFeaturePositions[i].eyes.left,
+        },
+        right: {
+          sprite: new Pixi.Sprite(Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)),
+          path: `images/scene/eye${i}.png`,
+          position: Data.faceFeaturePositions[i].eyes.right,
+        },
+      };
+      eyes.left.sprite.width = 100;
+      eyes.left.sprite.height = 100;
+      eyes.left.sprite.position.set(eyes.left.position.x, eyes.left.position.y);
+      eyes.left.sprite.anchor.set(0.5);
+      eyes.right.sprite.width = 100;
+      eyes.right.sprite.height = 100;
+      eyes.right.sprite.position.set(eyes.right.position.x, eyes.right.position.y);
+      eyes.right.sprite.anchor.set(0.5);
+      this.eyes.push(eyes);
+      this.faceContainer[i].container.addChild(eyes.left.sprite);
+      this.faceContainer[i].container.addChild(eyes.right.sprite);
+      if (this.displacementFilter) {
+        eyes.left.sprite.filters = [this.displacementFilter[i]];
+        eyes.right.sprite.filters = [this.displacementFilter[i]];
+      }
+    }
+  }
+
+  private attachEyeToFace(enable: boolean) {
+
   }
 
   private destroyButton() {

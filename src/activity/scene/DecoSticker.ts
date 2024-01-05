@@ -40,17 +40,17 @@ export default class Sticker extends Pixi.Container {
     for (let i = 1; i <= 4; i++) {
       let sticker: Data.Sticker = {
         eye: {
-          sprite: Pixi.Sprite.from(`images/scene/eye${i}.png`),
+          sprite: Pixi.Sprite.from(`images/sticker/eye${i}.png`),
           path: `images/scene/eye${i}.png`,
           position: { x: 1220, y: 150 },
         },
         nose: {
-          sprite: Pixi.Sprite.from(`images/scene/nose${i}.png`),
+          sprite: Pixi.Sprite.from(`images/sticker/nose${i}.png`),
           path: `images/scene/nose${i}.png`,
           position: { x: 1220, y: 350 },
         },
         mouse: {
-          sprite: Pixi.Sprite.from(`images/scene/mouse${i}.png`),
+          sprite: Pixi.Sprite.from(`images/sticker/mouse${i}.png`),
           path: `images/scene/mouse${i}.png`,
           position: { x: 1220, y: 550 },
         },
