@@ -16,6 +16,8 @@ export default class Sticker extends Pixi.Container {
   private prevX = 0;
   private prevY = 0;
   private scene: DecoScene;
+  private currentTargetX = 0;
+  private currentTargetY = 0;
 
   constructor(scene: DecoScene) {
     super();
@@ -109,16 +111,23 @@ export default class Sticker extends Pixi.Container {
 
     sprite.on("pointerdown", this.onDragStart, this);
     this.scene.on("pointerup", this.onDragEnd, this);
-    this.scene.on("pointerupoutside", this.onDragEnd, this);
     this.scene.on("pointermove", this.onDragMove, this);
   }
 
   private onDragStart(e: Pixi.FederatedPointerEvent) {
     this.dragging = true;
-    this.draggingSprite = e.currentTarget as Pixi.Sprite;  }
+    this.draggingSprite = e.currentTarget as Pixi.Sprite;
+    this.currentTargetX = this.draggingSprite.x;
+    this.currentTargetY = this.draggingSprite.y;
+  }
 
   private onDragEnd() {
     this.dragging = false;
+
+    if (this.draggingSprite) {
+      this.draggingSprite.x = this.currentTargetX;
+      this.draggingSprite.y = this.currentTargetY;
+    }
   }
 
   private onDragMove(e: Pixi.FederatedPointerEvent) {
@@ -130,6 +139,9 @@ export default class Sticker extends Pixi.Container {
 
       this.draggingSprite.x = this.prevX;
       this.draggingSprite.y = this.prevY;
+    }
+    if (this.prevX < 0 || this.prevX > Setting.sceneWidth || this.prevY < 0 || this.prevY > Setting.sceneHeight) {
+      this.onDragEnd();
     }
   }
 
@@ -156,7 +168,6 @@ export default class Sticker extends Pixi.Container {
     });
   
     this.scene.off("pointerup", this.onDragEnd, this);
-    this.scene.off("pointerupoutside", this.onDragEnd, this);
     this.scene.off("pointermove", this.onDragMove, this);
   }
 
