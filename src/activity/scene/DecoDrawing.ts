@@ -222,9 +222,7 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.pivot.set(center.x, center.y);
       graphic.position.set(center.x, center.y);
       graphic.endFill();
-      if (this.displacementFilter) {
-        graphic.filters = [this.displacementFilter[charNumber], this.filter];
-      }
+      graphic.filters = [this.filter];
       container.addChild(sprite);
       container.addChild(graphic);
 
@@ -250,12 +248,7 @@ export default class DecoDrawing extends Pixi.Container {
       const points = coordinates.flatMap(({ x, y }) => [x, y]);
       hairGraphic.hitArea = new Pixi.Polygon(points);
       hairGraphic.endFill();
-      if (this.displacementFilter) {
-        hairGraphic.filters = [
-          this.displacementFilter[charNumber],
-          this.filter,
-        ];
-      }
+        hairGraphic.filters = [this.filter];
       container.addChild(hairSprite);
       container.addChild(hairGraphic);
 
@@ -273,6 +266,10 @@ export default class DecoDrawing extends Pixi.Container {
       this.addChild(container);
       const faceContainer: Data.FaceContainer = { container, charNumber };
       this.faceContainer.push(faceContainer);
+
+      if (this.displacementFilter) {
+        container.filters = [this.displacementFilter[this.charNumber]];
+      }
     }
   }
 
@@ -467,10 +464,6 @@ export default class DecoDrawing extends Pixi.Container {
       this.eyes.push(eyes);
       this.faceContainer[i].container.addChild(eyes.left.sprite);
       this.faceContainer[i].container.addChild(eyes.right.sprite);
-      if (this.displacementFilter) {
-        eyes.left.sprite.filters = [this.displacementFilter[i]];
-        eyes.right.sprite.filters = [this.displacementFilter[i]];
-      }
     }
   }
 
