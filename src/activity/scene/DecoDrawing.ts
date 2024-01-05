@@ -39,7 +39,23 @@ export default class DecoDrawing extends Pixi.Container {
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
-    this.greatBoard();
+    // this.greatBoard();
+  }
+
+  private setUpEventListeners() {
+    this.on("pointerdown", this.onPointerDown, this);
+    this.on("pointermove", this.onPointerMove, this);
+    this.on("pointerup", this.onPointerUp, this);
+    this.on("pointerupoutside", this.onPointerUp, this);
+    this.on("pointermove", this.pointerMoveHandler, this);
+  }
+
+  private tearDownEventListeners() {
+    this.off("pointerdown", this.onPointerDown, this);
+    this.off("pointermove", this.onPointerMove, this);
+    this.off("pointerup", this.onPointerUp, this);
+    this.off("pointerupoutside", this.onPointerUp, this);
+    this.off("pointermove", this.pointerMoveHandler, this);
   }
 
   private loadStore() {
@@ -225,22 +241,6 @@ export default class DecoDrawing extends Pixi.Container {
       const faceContainer: Data.FaceContainer = { container, charNumber };
       this.faceContainer.push(faceContainer);
     }
-  }
-
-  private setUpEventListeners() {
-    // this.on("pointerdown", this.onPointerDown, this);
-    this.on("pointermove", this.onPointerMove, this);
-    this.on("pointerup", this.onPointerUp, this);
-    this.on("pointerupoutside", this.onPointerUp, this);
-    this.on("pointermove", this.pointerMoveHandler, this);
-  }
-
-  private tearDownEventListeners() {
-    this.off("pointerdown", this.onPointerDown, this);
-    this.off("pointermove", this.onPointerMove, this);
-    this.off("pointerup", this.onPointerUp, this);
-    this.off("pointerupoutside", this.onPointerUp, this);
-    this.off("pointermove", this.pointerMoveHandler, this);
   }
 
   protected targetSelect(target: string) {
