@@ -268,7 +268,7 @@ export default class DecoDrawing extends Pixi.Container {
       this.faceContainer.push(faceContainer);
 
       if (this.displacementFilter) {
-        container.filters = [this.displacementFilter[this.charNumber]];
+        container.filters = [this.displacementFilter[charNumber]];
       }
     }
   }
