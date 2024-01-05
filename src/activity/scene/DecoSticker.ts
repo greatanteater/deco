@@ -148,7 +148,20 @@ export default class Sticker extends Pixi.Container {
     this.stickers = [];
   }
 
+  private destroyDragAndDrop() {
+    this.stickers.forEach(sticker => {
+      sticker.eye.sprite.off("pointerdown", this.onDragStart, this);
+      sticker.nose.sprite.off("pointerdown", this.onDragStart, this);
+      sticker.mouse.sprite.off("pointerdown", this.onDragStart, this);
+    });
+  
+    this.scene.off("pointerup", this.onDragEnd, this);
+    this.scene.off("pointerupoutside", this.onDragEnd, this);
+    this.scene.off("pointermove", this.onDragMove, this);
+  }
+
   public destroy() {
+    this.destroyDragAndDrop();
     this.destroyStickerHive();
     super.destroy();
   }
