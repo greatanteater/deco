@@ -39,6 +39,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
+    this.greatBoard();
   }
 
   private loadStore() {
@@ -69,6 +70,32 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacementFilter[this.charNumber].scale.x = valX;
       this.displacementFilter[this.charNumber].scale.y = valY;
     }
+  }
+
+  private greatBoard() {
+    const graphicDraw = new SmoothGraphics();
+    graphicDraw.beginFill(0xffffff, 0.5);
+    graphicDraw.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
+    graphicDraw.endFill();
+    this.addChild(graphicDraw);
+
+    graphicDraw.interactive = true;
+    graphicDraw.on("pointerdown", (event: Pixi.FederatedPointerEvent) => {
+      const point = event.getLocalPosition(graphicDraw);
+      this.drawPoint(point.x, point.y);
+    });
+  }
+
+  private drawPoint(x: number, y: number) {
+    const radius = 2; // 점의 반지름
+    const color = 0x000000; // 점의 색상
+
+    const graphics = new Pixi.Graphics();
+    graphics.beginFill(color);
+    graphics.drawCircle(x, y, radius);
+    graphics.endFill();
+
+    this.addChild(graphics);
   }
 
   private async setFaces() {
@@ -201,7 +228,7 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private setUpEventListeners() {
-    this.on("pointerdown", this.onPointerDown, this);
+    // this.on("pointerdown", this.onPointerDown, this);
     this.on("pointermove", this.onPointerMove, this);
     this.on("pointerup", this.onPointerUp, this);
     this.on("pointerupoutside", this.onPointerUp, this);
@@ -311,40 +338,44 @@ export default class DecoDrawing extends Pixi.Container {
       { x: 491, y: 210 },
       { x: 511, y: 193 },
       { x: 524, y: 179 },
-      { x: 538, y: 169 }
+      { x: 538, y: 169 },
     ];
-    const outlineFace = [
-      { x: 20, y: 20 },
-    ];
-  
-    type Coordinate = { x: number, y: number };
-    const isPointInPolygon = (point: Coordinate, polygon: Coordinate[]): boolean => {
+    const outlineFace = [{ x: 20, y: 20 }];
+
+    type Coordinate = { x: number; y: number };
+    const isPointInPolygon = (
+      point: Coordinate,
+      polygon: Coordinate[]
+    ): boolean => {
       let inside = false;
       for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        let xi = polygon[i].x, yi = polygon[i].y;
-        let xj = polygon[j].x, yj = polygon[j].y;
-    
-        let intersect = ((yi > point.y) !== (yj > point.y)) && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+        let xi = polygon[i].x,
+          yi = polygon[i].y;
+        let xj = polygon[j].x,
+          yj = polygon[j].y;
+
+        let intersect =
+          yi > point.y !== yj > point.y &&
+          point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
         if (intersect) inside = !inside;
       }
       return inside;
     };
-    
+
     let point = { x: e.pageX - this.x, y: e.pageY - this.y };
-    
+
     if (isPointInPolygon(point, outlineHair)) {
-      console.log('Clicked inside the hair outline!');
-      this.targetSelect('hair');
+      console.log("Clicked inside the hair outline!");
+      this.targetSelect("hair");
     } else {
-      console.log('매우 개빡친다');
-      this.targetSelect('face');
+      console.log("매우 개빡친다");
+      this.targetSelect("face");
     }
-  
+
     this.down = true;
     this.prevX = e.pageX - this.x;
     this.prevY = e.pageY - this.y;
   }
-  
 
   protected onPointerMove(e: Pixi.FederatedPointerEvent) {
     if (this.down) {
