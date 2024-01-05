@@ -47,6 +47,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.loadStore();
     this.setUpEventListeners();
     this.faceFeatures();
+    this.greatBoard();
   }
 
   private setUpEventListeners() {
@@ -110,7 +111,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.prevX = e.globalX - this.x;
     this.prevY = e.globalY - this.y;
 
-    console.log(`x: ${this.prevX}, y:${this.prevY}`);
+    console.log(`{ x: ${this.prevX}, y:${this.prevY} }`);
     
     const radius = 2; // 점의 반지름
     const color = 0x000000; // 점의 색상
