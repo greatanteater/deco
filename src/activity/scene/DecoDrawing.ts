@@ -96,19 +96,21 @@ export default class DecoDrawing extends Pixi.Container {
     this.addChild(graphicDraw);
 
     graphicDraw.interactive = true;
-    graphicDraw.on('pointerdown', (event: Pixi.FederatedPointerEvent) => {
-      const point = event.getLocalPosition(graphicDraw);
-      this.drawPoint(point.x, point.y);
-    });
+    this.on('pointerdown', this.drawPoint, this);
   }
 
-  private drawPoint(x: number, y: number) {
+  private drawPoint(e: Pixi.FederatedPointerEvent) {
+    this.prevX = e.globalX - this.x;
+    this.prevY = e.globalY - this.y;
+
+    console.log(`x: ${this.prevX}, y:${this.prevY}`);
+    
     const radius = 2; // 점의 반지름
     const color = 0x000000; // 점의 색상
 
     const graphics = new Pixi.Graphics();
     graphics.beginFill(color);
-    graphics.drawCircle(x, y, radius);
+    graphics.drawCircle(this.prevX, this.prevY, radius);
     graphics.endFill();
 
     this.addChild(graphics);
