@@ -1,13 +1,17 @@
-import * as Pixi from 'pixi.js';
-import Setting from '../base/Setting';
-import { wait } from '../util/Util';
-import { get } from 'svelte/store';
-import { currentView, characterNumber, eyesAttachedStatus } from '../store/store';
-import { gsap } from 'gsap';
-import * as Data from './DecoData';
-import DecoScene from './DecoScene';
-import { SmoothGraphics, LINE_SCALE_MODE } from '@pixi/graphics-smooth';
-import { OutlineFilter } from '@pixi/filter-outline';
+import * as Pixi from "pixi.js";
+import Setting from "../base/Setting";
+import { wait } from "../util/Util";
+import { get } from "svelte/store";
+import {
+  currentView,
+  characterNumber,
+  eyesAttachedStatus,
+} from "../store/store";
+import { gsap } from "gsap";
+import * as Data from "./DecoData";
+import DecoScene from "./DecoScene";
+import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
+import { OutlineFilter } from "@pixi/filter-outline";
 
 export default class DecoDrawing extends Pixi.Container {
   private down = false;
@@ -23,7 +27,7 @@ export default class DecoDrawing extends Pixi.Container {
   private charNumber = 0;
   private faceHeight = 0;
   private faceContainer: Data.FaceContainer[] = [];
-  private drawTarget: string = '';
+  private drawTarget: string = "";
   private eyes: Data.Eyes[] = [];
   private nose: Data.Nose[] = [];
   private mouse: Data.Mouse[] = [];
@@ -38,32 +42,46 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private async initialize() {
-    this.eventMode = 'static';
+    this.eventMode = "static";
     this.faceHeight = 400;
-    this.drawTarget = 'face';
+    this.drawTarget = "face";
     await this.setFaces();
-    this.setFacesPosition('default');
+    this.setFacesPosition("default");
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
     this.faceFeatures();
-    this.greatBoard();
+    // this.greatBoard();
+    this.startDisplacement();
+  }
+
+  private startDisplacement() {
+    if (this.displacementFilter[this.charNumber]) {
+      const midpointX = Setting.sceneWidth / 2,
+        midpointY = Setting.sceneHeight / 2,
+        posX = 0,
+        posY = 0,
+        valX = (posX / midpointX) * 30,
+        valY = (posY / midpointY) * 17;
+      this.displacementFilter[this.charNumber].scale.x = valX;
+      this.displacementFilter[this.charNumber].scale.y = valY;
+    }
   }
 
   private setUpEventListeners() {
-    this.on('pointerdown', this.onPointerDown, this);
-    this.on('pointermove', this.onPointerMove, this);
-    this.on('pointerup', this.onPointerUp, this);
-    this.on('pointerupoutside', this.onPointerUp, this);
-    this.on('pointermove', this.pointerMoveHandler, this);
+    this.on("pointerdown", this.onPointerDown, this);
+    this.on("pointermove", this.onPointerMove, this);
+    this.on("pointerup", this.onPointerUp, this);
+    this.on("pointerupoutside", this.onPointerUp, this);
+    this.on("pointermove", this.pointerMoveHandler, this);
   }
 
   private tearDownEventListeners() {
-    this.off('pointerdown', this.onPointerDown, this);
-    this.off('pointermove', this.onPointerMove, this);
-    this.off('pointerup', this.onPointerUp, this);
-    this.off('pointerupoutside', this.onPointerUp, this);
-    this.off('pointermove', this.pointerMoveHandler, this);
+    this.off("pointerdown", this.onPointerDown, this);
+    this.off("pointermove", this.onPointerMove, this);
+    this.off("pointerup", this.onPointerUp, this);
+    this.off("pointerupoutside", this.onPointerUp, this);
+    this.off("pointermove", this.pointerMoveHandler, this);
   }
 
   private loadStore() {
@@ -74,7 +92,7 @@ export default class DecoDrawing extends Pixi.Container {
     characterNumber.set(this.charNumber);
   }
 
-  private pointerMoveHandler(event: PointerEvent) {
+  private pointerMoveHandler(event: Pixi.FederatedPointerEvent) {
     if (
       event.clientX < 0 ||
       event.clientX > Setting.sceneWidth ||
@@ -104,7 +122,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.addChild(graphicDraw);
 
     graphicDraw.interactive = true;
-    this.on('pointerdown', this.drawPoint, this);
+    this.on("pointerdown", this.drawPoint, this);
   }
 
   private drawPoint(e: Pixi.FederatedPointerEvent) {
@@ -112,7 +130,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.prevY = e.globalY - this.y;
 
     console.log(`{ x: ${this.prevX}, y:${this.prevY} }`);
-    
+
     const radius = 2; // 점의 반지름
     const color = 0x000000; // 점의 색상
 
@@ -127,37 +145,37 @@ export default class DecoDrawing extends Pixi.Container {
   private async setFaces() {
     const displacementData = [
       {
-        imagePath: 'images/scene/map1.jpg',
+        imagePath: "images/scene/map1.jpg",
       },
       {
-        imagePath: 'images/scene/map2.jpg',
+        imagePath: "images/scene/map2.jpg",
       },
       {
-        imagePath: 'images/scene/map3.jpg',
+        imagePath: "images/scene/map3.jpg",
       },
       {
-        imagePath: 'images/scene/map4.jpg',
+        imagePath: "images/scene/map4.jpg",
       },
     ];
 
     const faceData = [
       {
-        imagePath: 'images/scene/face1.png',
+        imagePath: "images/scene/face1.png",
         position: { x: -1000, y: this.faceHeight },
         charNumber: 0,
       },
       {
-        imagePath: 'images/scene/face2.png',
+        imagePath: "images/scene/face2.png",
         position: { x: -1000, y: this.faceHeight },
         charNumber: 1,
       },
       {
-        imagePath: 'images/scene/face3.png',
+        imagePath: "images/scene/face3.png",
         position: { x: -1000, y: this.faceHeight },
         charNumber: 2,
       },
       {
-        imagePath: 'images/scene/face4.png',
+        imagePath: "images/scene/face4.png",
         position: { x: -1000, y: this.faceHeight },
         charNumber: 3,
       },
@@ -189,7 +207,7 @@ export default class DecoDrawing extends Pixi.Container {
 
       this.filter = new OutlineFilter(2, 0x000000);
 
-      const maskLoad = await Pixi.Assets.load('images/drawing/mini.png');
+      const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
       const sprite = Pixi.Sprite.from(maskLoad);
       sprite.width = 650;
       sprite.height = 700;
@@ -210,7 +228,7 @@ export default class DecoDrawing extends Pixi.Container {
       container.addChild(sprite);
       container.addChild(graphic);
 
-      const hairMaskLoad = await Pixi.Assets.load('images/drawing/mini2.png');
+      const hairMaskLoad = await Pixi.Assets.load("images/drawing/mini2.png");
       const hairSprite = Pixi.Sprite.from(hairMaskLoad);
       hairSprite.width = 700;
       hairSprite.height = 200;
@@ -271,9 +289,9 @@ export default class DecoDrawing extends Pixi.Container {
 
     if (hitArea) {
       if (hitArea.contains(this.prevX, this.prevY)) {
-        this.drawTarget = 'hair'
+        this.drawTarget = "hair";
       } else {
-        this.drawTarget = 'face'
+        this.drawTarget = "face";
       }
     }
   }
@@ -281,7 +299,7 @@ export default class DecoDrawing extends Pixi.Container {
   protected onPointerMove(e: Pixi.FederatedPointerEvent) {
     if (this.down) {
       const board =
-        this.drawTarget === 'hair'
+        this.drawTarget === "hair"
           ? this.faces[this.charNumber].hairGraphic
           : this.faces[this.charNumber].graphic;
       if (board) {
@@ -308,7 +326,7 @@ export default class DecoDrawing extends Pixi.Container {
   private async setFacesPosition(direction: string) {
     this.faceMoveEnable(true);
 
-    if (direction === 'right') {
+    if (direction === "right") {
       const previousCharNumber = this.charNumber;
       this.charNumber = this.charNumber - 1;
       if (this.charNumber < 0) {
@@ -335,7 +353,7 @@ export default class DecoDrawing extends Pixi.Container {
       }
       await wait(1000);
       this.faceMoveEnable(false);
-    } else if (direction === 'left') {
+    } else if (direction === "left") {
       const previousCharNumber = this.charNumber;
       this.charNumber = this.charNumber + 1;
       if (this.charNumber >= this.faceContainer.length) {
@@ -363,7 +381,7 @@ export default class DecoDrawing extends Pixi.Container {
       }
       await wait(1000);
       this.faceMoveEnable(false);
-    } else if (direction === 'default') {
+    } else if (direction === "default") {
       this.faceContainer[this.charNumber].container.position.set(
         Setting.sceneWidth / 2,
         Setting.sceneHeight / 2
@@ -388,30 +406,30 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private setButton() {
-    this.leftButtonSprite = Pixi.Sprite.from('images/scene/left.png');
+    this.leftButtonSprite = Pixi.Sprite.from("images/scene/left.png");
     this.leftButtonSprite.width = 70;
     this.leftButtonSprite.height = 70;
     this.leftButtonSprite.anchor.set(0.5);
     this.leftButtonSprite.position.set(300, Setting.sceneHeight / 2);
-    this.leftButtonSprite.eventMode = 'static';
-    this.leftButtonSprite.cursor = 'pointer';
-    this.leftButtonSprite.on('pointerdown', () => {
+    this.leftButtonSprite.eventMode = "static";
+    this.leftButtonSprite.cursor = "pointer";
+    this.leftButtonSprite.on("pointerdown", () => {
       if (!this.faceMoving) {
-        this.setFacesPosition('left');
+        this.setFacesPosition("left");
       }
     });
     this.addChild(this.leftButtonSprite);
 
-    this.rightButtonSprite = Pixi.Sprite.from('images/scene/right.png');
+    this.rightButtonSprite = Pixi.Sprite.from("images/scene/right.png");
     this.rightButtonSprite.width = 70;
     this.rightButtonSprite.height = 70;
     this.rightButtonSprite.anchor.set(0.5);
     this.rightButtonSprite.position.set(1000, Setting.sceneHeight / 2);
-    this.rightButtonSprite.eventMode = 'static';
-    this.rightButtonSprite.cursor = 'pointer';
-    this.rightButtonSprite.on('pointerdown', () => {
+    this.rightButtonSprite.eventMode = "static";
+    this.rightButtonSprite.cursor = "pointer";
+    this.rightButtonSprite.on("pointerdown", () => {
       if (!this.faceMoving) {
-        this.setFacesPosition('right');
+        this.setFacesPosition("right");
       }
     });
     this.addChild(this.rightButtonSprite);
@@ -421,12 +439,16 @@ export default class DecoDrawing extends Pixi.Container {
     for (let i = 0; i < 4; i++) {
       const eyes: Data.Eyes = {
         left: {
-          sprite: new Pixi.Sprite(Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)),
+          sprite: new Pixi.Sprite(
+            Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)
+          ),
           path: `images/scene/eye${i}.png`,
           position: Data.faceFeaturePositions[i].eyes.left,
         },
         right: {
-          sprite: new Pixi.Sprite(Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)),
+          sprite: new Pixi.Sprite(
+            Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)
+          ),
           path: `images/scene/eye${i}.png`,
           position: Data.faceFeaturePositions[i].eyes.right,
         },
@@ -437,7 +459,10 @@ export default class DecoDrawing extends Pixi.Container {
       eyes.left.sprite.anchor.set(0.5);
       eyes.right.sprite.width = 100;
       eyes.right.sprite.height = 100;
-      eyes.right.sprite.position.set(eyes.right.position.x, eyes.right.position.y);
+      eyes.right.sprite.position.set(
+        eyes.right.position.x,
+        eyes.right.position.y
+      );
       eyes.right.sprite.anchor.set(0.5);
       this.eyes.push(eyes);
       this.faceContainer[i].container.addChild(eyes.left.sprite);
@@ -449,9 +474,7 @@ export default class DecoDrawing extends Pixi.Container {
     }
   }
 
-  private attachEyeToFace(enable: boolean) {
-
-  }
+  private attachEyeToFace(enable: boolean) {}
 
   private destroyButton() {
     if (this.leftButtonSprite) {
