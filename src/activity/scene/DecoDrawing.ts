@@ -25,7 +25,7 @@ export default class DecoDrawing extends Pixi.Container {
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private filter: OutlineFilter | null = null;
   private charNumber = 0;
-  private faceHeight = 0;
+  private faceY = 0;
   private faceContainer: Data.FaceContainer[] = [];
   private drawTarget: string = "";
   private eyes: Data.Eyes[] = [];
@@ -43,7 +43,7 @@ export default class DecoDrawing extends Pixi.Container {
 
   private async initialize() {
     this.eventMode = "static";
-    this.faceHeight = 400;
+    this.faceY = 400;
     this.drawTarget = "face";
     await this.setFaces();
     this.setFacesPosition("default");
@@ -161,22 +161,22 @@ export default class DecoDrawing extends Pixi.Container {
     const faceData = [
       {
         imagePath: "images/scene/face1.png",
-        position: { x: -1000, y: this.faceHeight },
+        position: { x: -1000, y: this.faceY },
         charNumber: 0,
       },
       {
         imagePath: "images/scene/face2.png",
-        position: { x: -1000, y: this.faceHeight },
+        position: { x: -1000, y: this.faceY },
         charNumber: 1,
       },
       {
         imagePath: "images/scene/face3.png",
-        position: { x: -1000, y: this.faceHeight },
+        position: { x: -1000, y: this.faceY },
         charNumber: 2,
       },
       {
         imagePath: "images/scene/face4.png",
-        position: { x: -1000, y: this.faceHeight },
+        position: { x: -1000, y: this.faceY },
         charNumber: 3,
       },
     ];
@@ -189,7 +189,7 @@ export default class DecoDrawing extends Pixi.Container {
     for (const { imagePath, position, charNumber } of faceData) {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
-      container.position.set(-1000, this.faceHeight);
+      container.position.set(-1000, this.faceY);
 
       const displacement = Pixi.Sprite.from(
         displacementData[charNumber].imagePath
@@ -333,17 +333,17 @@ export default class DecoDrawing extends Pixi.Container {
         if (faceContainer.charNumber === previousCharNumber) {
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2 + Setting.sceneWidth,
-            y: this.faceHeight,
+            y: Setting.sceneHeight / 2,
             duration: 1,
           });
         } else if (faceContainer.charNumber === this.charNumber) {
           faceContainer.container.position.set(
             Setting.sceneWidth / 2 - Setting.sceneWidth,
-            this.faceHeight
+            this.faceY
           );
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2,
-            y: this.faceHeight,
+            y: Setting.sceneHeight / 2,
             duration: 1,
           });
         }
@@ -360,18 +360,18 @@ export default class DecoDrawing extends Pixi.Container {
         if (faceContainer.charNumber === previousCharNumber) {
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2 - Setting.sceneWidth,
-            y: this.faceHeight,
+            y: Setting.sceneHeight / 2,
             duration: 1,
           });
         }
         if (faceContainer.charNumber === this.charNumber) {
           faceContainer.container.position.set(
             Setting.sceneWidth / 2 + Setting.sceneWidth,
-            this.faceHeight
+            Setting.sceneHeight / 2,
           );
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2,
-            y: this.faceHeight,
+            y: Setting.sceneHeight / 2,
             duration: 1,
           });
         }
