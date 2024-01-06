@@ -44,7 +44,7 @@ export default class DecoDrawing extends Pixi.Container {
   private async initialize() {
     this.eventMode = "static";
     this.faceY = 400;
-    this.drawTarget = "face";
+    this.drawTarget = "hair";
     await this.setFaces();
     this.setFacesPosition("default");
     this.setButton();
@@ -126,6 +126,26 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private drawPoint(e: Pixi.FederatedPointerEvent) {
+    const globalPoint = new Pixi.Point(e.globalX, e.globalY);
+
+    const localPoint =
+      this.faces[this.charNumber].hairSprite.toLocal(globalPoint);
+
+    const adjustedLocalPoint = {
+      x:
+        localPoint.x +
+        this.faces[this.charNumber].hairSprite.texture.orig.width / 2,
+      y:
+        localPoint.y +
+        this.faces[this.charNumber].hairSprite.texture.orig.height / 2,
+    };
+
+    console.log(`{ x: ${adjustedLocalPoint.x}, y:${adjustedLocalPoint.y} }`);
+
+    this.drawPoint2(e);
+  }
+
+  private drawPoint2(e: Pixi.FederatedPointerEvent) {
     this.prevX = e.globalX - this.x;
     this.prevY = e.globalY - this.y;
 
@@ -228,8 +248,8 @@ export default class DecoDrawing extends Pixi.Container {
 
       const hairMaskLoad = await Pixi.Assets.load("images/drawing/mini2.png");
       const hairSprite = Pixi.Sprite.from(hairMaskLoad);
-      hairSprite.width = 700;
-      hairSprite.height = 200;
+      // hairSprite.width = 700;
+      // hairSprite.height = 200;
       hairSprite.anchor.set(0.5);
       hairSprite.position.set(
         Setting.sceneWidth / 2,
@@ -239,16 +259,20 @@ export default class DecoDrawing extends Pixi.Container {
       const hairGraphic = new SmoothGraphics();
       hairGraphic.mask = hairSprite;
       hairGraphic.beginFill(0xffffff, 1);
-
-      hairGraphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
-      hairGraphic.pivot.set(center.x, center.y);
-      hairGraphic.position.set(center.x, center.y);
-
+      hairGraphic.drawRect(0, 0, 1000, 1000);
+      hairGraphic.pivot.set(hairSprite.width / 2, hairSprite.height / 2);
+      hairGraphic.position.set(hairSprite.x, hairSprite.y);
       const coordinates = Data.hairCoordinates[0].coordinates;
       const points = coordinates.flatMap(({ x, y }) => [x, y]);
       hairGraphic.hitArea = new Pixi.Polygon(points);
+      hairGraphic.interactive = true;
+      hairGraphic.eventMode = "static";
+      hairGraphic.cursor = "pointer";
+      hairGraphic.on("pointertap", () => {
+        console.log("hairGraphic was clicked!");
+      });
       hairGraphic.endFill();
-        hairGraphic.filters = [this.filter];
+      hairGraphic.filters = [this.filter];
       container.addChild(hairSprite);
       container.addChild(hairGraphic);
 
@@ -282,15 +306,15 @@ export default class DecoDrawing extends Pixi.Container {
     this.prevX = e.globalX - this.x;
     this.prevY = e.globalY - this.y;
 
-    const hitArea = this.faces[this.charNumber].hairGraphic.hitArea;
+    // const hitArea = this.faces[this.charNumber].hairGraphic.hitArea;
 
-    if (hitArea) {
-      if (hitArea.contains(this.prevX, this.prevY)) {
-        this.drawTarget = "hair";
-      } else {
-        this.drawTarget = "face";
-      }
-    }
+    // if (hitArea) {
+    //   if (hitArea.contains(this.prevX, this.prevY)) {
+    //     this.drawTarget = "hair";
+    //   } else {
+    //     this.drawTarget = "face";
+    //   }
+    // }
   }
 
   protected onPointerMove(e: Pixi.FederatedPointerEvent) {
@@ -367,7 +391,7 @@ export default class DecoDrawing extends Pixi.Container {
         if (faceContainer.charNumber === this.charNumber) {
           faceContainer.container.position.set(
             Setting.sceneWidth / 2 + Setting.sceneWidth,
-            Setting.sceneHeight / 2,
+            Setting.sceneHeight / 2
           );
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2,
