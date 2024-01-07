@@ -51,12 +51,12 @@ export default class DecoDrawing extends Pixi.Container {
     this.loadStore();
     this.setUpEventListeners();
     this.faceFeatures();
-    // this.greatBoard();
+    this.greatBoard();
     // this.startDisplacement();
   }
 
   private setUpEventListeners() {
-    this.on("pointerdown", this.onPointerDown, this);
+    // this.on("pointerdown", this.onPointerDown, this);
     this.on("pointermove", this.onPointerMove, this);
     this.on("pointerup", this.onPointerUp, this);
     this.on("pointerupoutside", this.onPointerUp, this);
@@ -134,10 +134,10 @@ export default class DecoDrawing extends Pixi.Container {
     const adjustedLocalPoint = {
       x:
         localPoint.x +
-        this.faces[this.charNumber].hairSprite.texture.orig.width / 2,
+        this.faces[this.charNumber].hairSprite.width / 2,
       y:
         localPoint.y +
-        this.faces[this.charNumber].hairSprite.texture.orig.height / 2,
+        this.faces[this.charNumber].hairSprite.height / 2,
     };
 
     console.log(`{ x: ${adjustedLocalPoint.x}, y:${adjustedLocalPoint.y} }`);
@@ -149,7 +149,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.prevX = e.globalX - this.x;
     this.prevY = e.globalY - this.y;
 
-    console.log(`{ x: ${this.prevX}, y:${this.prevY} }`);
+    // console.log(`{ x: ${this.prevX}, y:${this.prevY} }`);
 
     const radius = 2; // 점의 반지름
     const color = 0x000000; // 점의 색상
