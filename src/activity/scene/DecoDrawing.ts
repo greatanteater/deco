@@ -242,8 +242,6 @@ export default class DecoDrawing extends Pixi.Container {
       container.position.set(-1000, this.faceY);
       container.interactive = true;
       container.eventMode = "static";
-      const subContainer_face = new Pixi.Container();
-      const subContainer_hair = new Pixi.Container();
 
       const displacement = Pixi.Sprite.from(
         displacementData[charNumber].imagePath
@@ -280,7 +278,8 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.eventMode = "static";
       graphic.endFill();
       graphic.filters = [this.filter];
-      subContainer_face.addChild(sprite, graphic);
+
+      container.addChild(graphic, sprite);
 
       const hairMaskLoad = await Pixi.Assets.load("images/drawing/mini2.png");
       const hairSprite = Pixi.Sprite.from(hairMaskLoad);
@@ -303,9 +302,8 @@ export default class DecoDrawing extends Pixi.Container {
       hairGraphic.eventMode = "static";
       hairGraphic.endFill();
       hairGraphic.filters = [this.filter];
-      subContainer_hair.addChild(hairSprite, hairGraphic);
 
-      container.addChild(subContainer_face, subContainer_hair);
+      container.addChild(hairGraphic, hairSprite);
       if (this.displacementFilter) {
         container.filters = [this.displacementFilter[charNumber]];
       }
@@ -344,7 +342,7 @@ export default class DecoDrawing extends Pixi.Container {
     const globalPoint = new Pixi.Point(e.globalX - this.x, e.globalY - this.y);
 
     const localPoint =
-      this.faces[this.charNumber].sprite.toLocal(globalPoint);
+      sprite.toLocal(globalPoint);
 
     const adjustedLocalPoint = {
       x: localPoint.x + sprite.width / 2,
