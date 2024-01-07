@@ -14,6 +14,7 @@ import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
 
 export default class DecoDrawing extends Pixi.Container {
+  private scene: DecoScene;
   private down = false;
   private erase = false;
   private prevX = 0;
@@ -26,14 +27,16 @@ export default class DecoDrawing extends Pixi.Container {
   private filter: OutlineFilter | null = null;
   private charNumber = 0;
   private faceY = 0;
-  private faceContainer: Data.FaceContainer[] = [];
+  private faceContainers: Data.FaceContainer[] = [];
   private drawTarget: string = "";
   private eyes: Data.Eyes[] = [];
   private nose: Data.Nose[] = [];
   private mouse: Data.Mouse[] = [];
+  private faceForward = false;
 
   constructor(scene: DecoScene) {
     super();
+    this.scene = scene;
     this.initialize();
 
     eyesAttachedStatus.subscribe((value) => {
@@ -56,19 +59,45 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private setUpEventListeners() {
-    this.on("pointerdown", this.onPointerDown, this);
+    this.faces.forEach((face) => {
+      face.graphic.on(
+        "pointerdown",
+        (e) => this.onPointerDown(e, "face"),
+        this
+      );
+      face.hairGraphic.on(
+        "pointerdown",
+        (e) => this.onPointerDown(e, "hair"),
+        this
+      );
+    });
+    this.faceContainers.forEach((faceContainer) => {
+      faceContainer.container.on("pointerover", this.setFaceForward, this);
+      faceContainer.container.on("pointerout", this.resetFaceOrientation, this);
+    });
     this.on("pointermove", this.onPointerMove, this);
     this.on("pointerup", this.onPointerUp, this);
     this.on("pointerupoutside", this.onPointerUp, this);
-    this.on("pointermove", this.pointerMoveHandler, this);
+    this.scene.on("pointermove", this.pointerMoveDisplacementHandler, this);
   }
 
   private tearDownEventListeners() {
-    this.off("pointerdown", this.onPointerDown, this);
+    this.faces.forEach((face) => {
+      face.graphic.off(
+        "pointerdown",
+        (e) => this.onPointerDown(e, "face"),
+        this
+      );
+      face.hairGraphic.off(
+        "pointerdown",
+        (e) => this.onPointerDown(e, "hair"),
+        this
+      );
+    });
     this.off("pointermove", this.onPointerMove, this);
     this.off("pointerup", this.onPointerUp, this);
     this.off("pointerupoutside", this.onPointerUp, this);
-    this.off("pointermove", this.pointerMoveHandler, this);
+    this.scene.off("pointermove", this.pointerMoveDisplacementHandler, this);
   }
 
   private startDisplacement() {
@@ -92,8 +121,9 @@ export default class DecoDrawing extends Pixi.Container {
     characterNumber.set(this.charNumber);
   }
 
-  private pointerMoveHandler(event: Pixi.FederatedPointerEvent) {
+  private pointerMoveDisplacementHandler(event: Pixi.FederatedPointerEvent) {
     if (
+      this.faceForward ||
       event.clientX < 0 ||
       event.clientX > Setting.sceneWidth ||
       event.clientY < 0 ||
@@ -112,6 +142,24 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacementFilter[this.charNumber].scale.x = valX;
       this.displacementFilter[this.charNumber].scale.y = valY;
     }
+  }
+
+  private setFaceForward(e: Pixi.FederatedPointerEvent) {
+    if (this.faceForward) {
+      return;
+    }
+    this.faceForward = true;
+    if (this.displacementFilter[this.charNumber]) {
+      gsap.to(this.displacementFilter[this.charNumber].scale, { 
+        x: 0, 
+        y: 0, 
+        duration: 0.2
+      });
+    }
+  }
+
+  private resetFaceOrientation(e: Pixi.FederatedPointerEvent) {
+    this.faceForward = false;
   }
 
   private greatBoard() {
@@ -206,6 +254,10 @@ export default class DecoDrawing extends Pixi.Container {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
       container.position.set(-1000, this.faceY);
+      container.interactive = true;
+      container.eventMode = "static";
+      const subContainer_face = new Pixi.Container();
+      const subContainer_hair = new Pixi.Container();
 
       const displacement = Pixi.Sprite.from(
         displacementData[charNumber].imagePath
@@ -237,19 +289,18 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
       graphic.pivot.set(center.x, center.y);
       graphic.position.set(center.x, center.y);
+      graphic.interactive = true;
+      graphic.eventMode = "static";
       graphic.endFill();
       graphic.filters = [this.filter];
-      container.addChild(sprite);
-      container.addChild(graphic);
+      subContainer_face.addChild(sprite, graphic);
 
       const hairMaskLoad = await Pixi.Assets.load("images/drawing/mini2.png");
       const hairSprite = Pixi.Sprite.from(hairMaskLoad);
-      // hairSprite.width = 700;
-      // hairSprite.height = 200;
       hairSprite.anchor.set(0.5);
       hairSprite.position.set(
         Setting.sceneWidth / 2,
-        Setting.sceneHeight / 2 - 250
+        Setting.sceneHeight / 2 - 200
       );
 
       const hairGraphic = new SmoothGraphics();
@@ -263,15 +314,15 @@ export default class DecoDrawing extends Pixi.Container {
       hairGraphic.hitArea = new Pixi.Polygon(points);
       hairGraphic.interactive = true;
       hairGraphic.eventMode = "static";
-      // hairGraphic.cursor = "pointer";
-      hairGraphic.on("pointerdown", () => {
-        this.drawTarget = "hair";
-        console.log("hairGraphic was clicked!");
-      });
       hairGraphic.endFill();
       hairGraphic.filters = [this.filter];
-      container.addChild(hairSprite);
-      container.addChild(hairGraphic);
+      subContainer_hair.addChild(hairSprite, hairGraphic);
+
+      container.addChild(subContainer_face, subContainer_hair);
+      if (this.displacementFilter) {
+        container.filters = [this.displacementFilter[charNumber]];
+        container.filters = [this.displacementFilter[charNumber]];
+      }
 
       const face: Data.Face = {
         displacement,
@@ -286,11 +337,7 @@ export default class DecoDrawing extends Pixi.Container {
 
       this.addChild(container);
       const faceContainer: Data.FaceContainer = { container, charNumber };
-      this.faceContainer.push(faceContainer);
-
-      // if (this.displacementFilter) {
-      //   container.filters = [this.displacementFilter[charNumber]];
-      // }
+      this.faceContainers.push(faceContainer);
     }
   }
 
@@ -298,10 +345,11 @@ export default class DecoDrawing extends Pixi.Container {
     this.drawTarget = target;
   }
 
-  protected onPointerDown(e: Pixi.FederatedPointerEvent) {
+  protected onPointerDown(e: Pixi.FederatedPointerEvent, target: string) {
     this.down = true;
+    this.drawTarget = target;
     let sprite = null;
-    if (this.drawTarget === "hair") {
+    if (target === "hair") {
       sprite = this.faces[this.charNumber].hairSprite;
       const globalPoint = new Pixi.Point(
         e.globalX - this.x,
@@ -388,9 +436,9 @@ export default class DecoDrawing extends Pixi.Container {
       const previousCharNumber = this.charNumber;
       this.charNumber = this.charNumber - 1;
       if (this.charNumber < 0) {
-        this.charNumber = this.faceContainer.length - 1;
+        this.charNumber = this.faceContainers.length - 1;
       }
-      for (const faceContainer of this.faceContainer) {
+      for (const faceContainer of this.faceContainers) {
         if (faceContainer.charNumber === previousCharNumber) {
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2 + Setting.sceneWidth,
@@ -414,10 +462,10 @@ export default class DecoDrawing extends Pixi.Container {
     } else if (direction === "left") {
       const previousCharNumber = this.charNumber;
       this.charNumber = this.charNumber + 1;
-      if (this.charNumber >= this.faceContainer.length) {
+      if (this.charNumber >= this.faceContainers.length) {
         this.charNumber = 0;
       }
-      for (const faceContainer of this.faceContainer) {
+      for (const faceContainer of this.faceContainers) {
         if (faceContainer.charNumber === previousCharNumber) {
           gsap.to(faceContainer.container.position, {
             x: Setting.sceneWidth / 2 - Setting.sceneWidth,
@@ -440,7 +488,7 @@ export default class DecoDrawing extends Pixi.Container {
       await wait(1000);
       this.faceMoveEnable(false);
     } else if (direction === "default") {
-      this.faceContainer[this.charNumber].container.position.set(
+      this.faceContainers[this.charNumber].container.position.set(
         Setting.sceneWidth / 2,
         Setting.sceneHeight / 2
       );
@@ -523,8 +571,8 @@ export default class DecoDrawing extends Pixi.Container {
       );
       eyes.right.sprite.anchor.set(0.5);
       this.eyes.push(eyes);
-      this.faceContainer[i].container.addChild(eyes.left.sprite);
-      this.faceContainer[i].container.addChild(eyes.right.sprite);
+      this.faceContainers[i].container.addChild(eyes.left.sprite);
+      this.faceContainers[i].container.addChild(eyes.right.sprite);
     }
   }
 
@@ -543,7 +591,7 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private destroyFace() {
-    for (const { container, charNumber } of this.faceContainer) {
+    for (const { container, charNumber } of this.faceContainers) {
       // 객체에 대한 참조를 제거
       this.removeChild(container);
 
@@ -565,7 +613,7 @@ export default class DecoDrawing extends Pixi.Container {
 
     // 배열 초기화
     this.displacementFilter = [];
-    this.faceContainer = [];
+    this.faceContainers = [];
     this.faces = [];
   }
 
