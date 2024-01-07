@@ -51,12 +51,12 @@ export default class DecoDrawing extends Pixi.Container {
     this.loadStore();
     this.setUpEventListeners();
     this.faceFeatures();
-    this.greatBoard();
+    // this.greatBoard();
     // this.startDisplacement();
   }
 
   private setUpEventListeners() {
-    // this.on("pointerdown", this.onPointerDown, this);
+    this.on("pointerdown", this.onPointerDown, this);
     this.on("pointermove", this.onPointerMove, this);
     this.on("pointerup", this.onPointerUp, this);
     this.on("pointerupoutside", this.onPointerUp, this);
