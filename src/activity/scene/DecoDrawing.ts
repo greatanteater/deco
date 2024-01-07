@@ -44,7 +44,7 @@ export default class DecoDrawing extends Pixi.Container {
   private async initialize() {
     this.eventMode = "static";
     this.faceY = 400;
-    this.drawTarget = "hair";
+    this.drawTarget = "face";
     await this.setFaces();
     this.setFacesPosition("default");
     this.setButton();
@@ -132,12 +132,8 @@ export default class DecoDrawing extends Pixi.Container {
       this.faces[this.charNumber].hairSprite.toLocal(globalPoint);
 
     const adjustedLocalPoint = {
-      x:
-        localPoint.x +
-        this.faces[this.charNumber].hairSprite.width / 2,
-      y:
-        localPoint.y +
-        this.faces[this.charNumber].hairSprite.height / 2,
+      x: localPoint.x + this.faces[this.charNumber].hairSprite.width / 2,
+      y: localPoint.y + this.faces[this.charNumber].hairSprite.height / 2,
     };
 
     console.log(`{ x: ${adjustedLocalPoint.x}, y:${adjustedLocalPoint.y} }`);
@@ -259,7 +255,7 @@ export default class DecoDrawing extends Pixi.Container {
       const hairGraphic = new SmoothGraphics();
       hairGraphic.mask = hairSprite;
       hairGraphic.beginFill(0xffffff, 1);
-      hairGraphic.drawRect(0, 0, 1000, 1000);
+      hairGraphic.drawRect(0, 0, hairSprite.width, hairSprite.height);
       hairGraphic.pivot.set(hairSprite.width / 2, hairSprite.height / 2);
       hairGraphic.position.set(hairSprite.x, hairSprite.y);
       const coordinates = Data.hairCoordinates[0].coordinates;
@@ -267,8 +263,9 @@ export default class DecoDrawing extends Pixi.Container {
       hairGraphic.hitArea = new Pixi.Polygon(points);
       hairGraphic.interactive = true;
       hairGraphic.eventMode = "static";
-      hairGraphic.cursor = "pointer";
-      hairGraphic.on("pointertap", () => {
+      // hairGraphic.cursor = "pointer";
+      hairGraphic.on("pointerdown", () => {
+        this.drawTarget = "hair";
         console.log("hairGraphic was clicked!");
       });
       hairGraphic.endFill();
@@ -291,9 +288,9 @@ export default class DecoDrawing extends Pixi.Container {
       const faceContainer: Data.FaceContainer = { container, charNumber };
       this.faceContainer.push(faceContainer);
 
-      if (this.displacementFilter) {
-        container.filters = [this.displacementFilter[charNumber]];
-      }
+      // if (this.displacementFilter) {
+      //   container.filters = [this.displacementFilter[charNumber]];
+      // }
     }
   }
 
@@ -303,38 +300,77 @@ export default class DecoDrawing extends Pixi.Container {
 
   protected onPointerDown(e: Pixi.FederatedPointerEvent) {
     this.down = true;
-    this.prevX = e.globalX - this.x;
-    this.prevY = e.globalY - this.y;
+    let sprite = null;
+    if (this.drawTarget === "hair") {
+      sprite = this.faces[this.charNumber].hairSprite;
+      const globalPoint = new Pixi.Point(
+        e.globalX - this.x,
+        e.globalY - this.y
+      );
 
-    // const hitArea = this.faces[this.charNumber].hairGraphic.hitArea;
+      const localPoint =
+        this.faces[this.charNumber].hairSprite.toLocal(globalPoint);
 
-    // if (hitArea) {
-    //   if (hitArea.contains(this.prevX, this.prevY)) {
-    //     this.drawTarget = "hair";
-    //   } else {
-    //     this.drawTarget = "face";
-    //   }
-    // }
+      const adjustedLocalPoint = {
+        x: localPoint.x + sprite.width / 2,
+        y: localPoint.y + sprite.height / 2,
+      };
+      this.prevX = adjustedLocalPoint.x;
+      this.prevY = adjustedLocalPoint.y;
+    } else {
+      sprite = this.faces[this.charNumber].sprite;
+      this.prevX = e.globalX - this.x;
+      this.prevY = e.globalY - this.y;
+    }
   }
 
   protected onPointerMove(e: Pixi.FederatedPointerEvent) {
     if (this.down) {
-      const board =
-        this.drawTarget === "hair"
-          ? this.faces[this.charNumber].hairGraphic
-          : this.faces[this.charNumber].graphic;
-      if (board) {
-        board.lineStyle({
-          width: 10,
-          color: 0x000000,
-          cap: Pixi.LINE_CAP.ROUND,
-          join: Pixi.LINE_JOIN.ROUND,
-          scaleMode: LINE_SCALE_MODE.NONE,
-        });
-        board.moveTo(this.prevX, this.prevY);
-        board.lineTo(e.globalX - this.x, e.globalY - this.y);
-        this.prevX = e.globalX - this.x;
-        this.prevY = e.globalY - this.y;
+      let board = null;
+      let sprite = null;
+      if (this.drawTarget === "hair") {
+        board = this.faces[this.charNumber].hairGraphic;
+        sprite = this.faces[this.charNumber].hairSprite;
+        if (board) {
+          board.lineStyle({
+            width: 10,
+            color: 0x000000,
+            cap: Pixi.LINE_CAP.ROUND,
+            join: Pixi.LINE_JOIN.ROUND,
+            scaleMode: LINE_SCALE_MODE.NONE,
+          });
+          const globalPoint = new Pixi.Point(
+            e.globalX - this.x,
+            e.globalY - this.y
+          );
+
+          const localPoint = sprite.toLocal(globalPoint);
+
+          const adjustedLocalPoint = {
+            x: localPoint.x + sprite.width / 2,
+            y: localPoint.y + sprite.height / 2,
+          };
+          board.moveTo(this.prevX, this.prevY);
+          board.lineTo(adjustedLocalPoint.x, adjustedLocalPoint.y);
+          this.prevX = adjustedLocalPoint.x;
+          this.prevY = adjustedLocalPoint.y;
+        }
+      } else {
+        board = this.faces[this.charNumber].graphic;
+        sprite = this.faces[this.charNumber].sprite;
+        if (board) {
+          board.lineStyle({
+            width: 10,
+            color: 0x000000,
+            cap: Pixi.LINE_CAP.ROUND,
+            join: Pixi.LINE_JOIN.ROUND,
+            scaleMode: LINE_SCALE_MODE.NONE,
+          });
+          board.moveTo(this.prevX, this.prevY);
+          board.lineTo(e.globalX - this.x, e.globalY - this.y);
+          this.prevX = e.globalX - this.x;
+          this.prevY = e.globalY - this.y;
+        }
       }
     }
   }
@@ -342,6 +378,7 @@ export default class DecoDrawing extends Pixi.Container {
   protected onPointerUp(e: Pixi.FederatedPointerEvent) {
     this.down = false;
     this.erase = !this.erase;
+    this.drawTarget = "face";
   }
 
   private async setFacesPosition(direction: string) {
