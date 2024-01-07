@@ -50,12 +50,12 @@ export default class DecoDrawing extends Pixi.Container {
     this.drawTarget = "face";
     await this.setFaces();
     this.setFacesPosition("default");
+    this.setFaceForward();
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
     this.faceFeatures();
     // this.greatBoard();
-    // this.startDisplacement();
   }
 
   private setUpEventListeners() {
@@ -100,19 +100,6 @@ export default class DecoDrawing extends Pixi.Container {
     this.scene.off("pointermove", this.pointerMoveDisplacementHandler, this);
   }
 
-  private startDisplacement() {
-    if (this.displacementFilter[this.charNumber]) {
-      const midpointX = Setting.sceneWidth / 2,
-        midpointY = Setting.sceneHeight / 2,
-        posX = 0,
-        posY = 0,
-        valX = (posX / midpointX) * 30,
-        valY = (posY / midpointY) * 17;
-      this.displacementFilter[this.charNumber].scale.x = valX;
-      this.displacementFilter[this.charNumber].scale.y = valY;
-    }
-  }
-
   private loadStore() {
     this.charNumber = get(characterNumber);
   }
@@ -144,16 +131,16 @@ export default class DecoDrawing extends Pixi.Container {
     }
   }
 
-  private setFaceForward(e: Pixi.FederatedPointerEvent) {
+  private setFaceForward() {
     if (this.faceForward) {
       return;
     }
     this.faceForward = true;
     if (this.displacementFilter[this.charNumber]) {
-      gsap.to(this.displacementFilter[this.charNumber].scale, { 
-        x: 0, 
-        y: 0, 
-        duration: 0.2
+      gsap.to(this.displacementFilter[this.charNumber].scale, {
+        x: 0,
+        y: 0,
+        duration: 0.2,
       });
     }
   }
@@ -176,12 +163,11 @@ export default class DecoDrawing extends Pixi.Container {
   private drawPoint(e: Pixi.FederatedPointerEvent) {
     const globalPoint = new Pixi.Point(e.globalX, e.globalY);
 
-    const localPoint =
-      this.faces[this.charNumber].hairSprite.toLocal(globalPoint);
+    const localPoint = this.faces[this.charNumber].sprite.toLocal(globalPoint);
 
     const adjustedLocalPoint = {
-      x: localPoint.x + this.faces[this.charNumber].hairSprite.width / 2,
-      y: localPoint.y + this.faces[this.charNumber].hairSprite.height / 2,
+      x: localPoint.x + this.faces[this.charNumber].sprite.width / 2,
+      y: localPoint.y + this.faces[this.charNumber].sprite.height / 2,
     };
 
     console.log(`{ x: ${adjustedLocalPoint.x}, y:${adjustedLocalPoint.y} }`);
@@ -277,8 +263,6 @@ export default class DecoDrawing extends Pixi.Container {
 
       const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
       const sprite = Pixi.Sprite.from(maskLoad);
-      sprite.width = 650;
-      sprite.height = 700;
       sprite.anchor.set(0.5);
       sprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
 
@@ -286,9 +270,12 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.mask = sprite;
       graphic.beginFill(0xffffff, 1);
 
-      graphic.drawRect(0, 0, Setting.sceneWidth, Setting.sceneHeight);
-      graphic.pivot.set(center.x, center.y);
-      graphic.position.set(center.x, center.y);
+      graphic.drawRect(0, 0, sprite.width, sprite.height);
+      graphic.pivot.set(sprite.width / 2, sprite.height / 2);
+      graphic.position.set(sprite.x, sprite.y);
+      const faceCoordinates = Data.faceCoordinates[0].coordinates;
+      const facePoints = faceCoordinates.flatMap(({ x, y }) => [x, y]);
+      graphic.hitArea = new Pixi.Polygon(facePoints);
       graphic.interactive = true;
       graphic.eventMode = "static";
       graphic.endFill();
@@ -309,9 +296,9 @@ export default class DecoDrawing extends Pixi.Container {
       hairGraphic.drawRect(0, 0, hairSprite.width, hairSprite.height);
       hairGraphic.pivot.set(hairSprite.width / 2, hairSprite.height / 2);
       hairGraphic.position.set(hairSprite.x, hairSprite.y);
-      const coordinates = Data.hairCoordinates[0].coordinates;
-      const points = coordinates.flatMap(({ x, y }) => [x, y]);
-      hairGraphic.hitArea = new Pixi.Polygon(points);
+      const hairCoordinates = Data.hairCoordinates[0].coordinates;
+      const hairPoints = hairCoordinates.flatMap(({ x, y }) => [x, y]);
+      hairGraphic.hitArea = new Pixi.Polygon(hairPoints);
       hairGraphic.interactive = true;
       hairGraphic.eventMode = "static";
       hairGraphic.endFill();
@@ -320,7 +307,6 @@ export default class DecoDrawing extends Pixi.Container {
 
       container.addChild(subContainer_face, subContainer_hair);
       if (this.displacementFilter) {
-        container.filters = [this.displacementFilter[charNumber]];
         container.filters = [this.displacementFilter[charNumber]];
       }
 
@@ -331,7 +317,8 @@ export default class DecoDrawing extends Pixi.Container {
         hairSprite,
         hairGraphic,
         charNumber,
-        hairCoordinate: coordinates,
+        faceCoordinate: faceCoordinates,
+        hairCoordinate: hairCoordinates,
       };
       this.faces.push(face);
 
@@ -349,76 +336,58 @@ export default class DecoDrawing extends Pixi.Container {
     this.down = true;
     this.drawTarget = target;
     let sprite = null;
-    if (target === "hair") {
-      sprite = this.faces[this.charNumber].hairSprite;
-      const globalPoint = new Pixi.Point(
-        e.globalX - this.x,
-        e.globalY - this.y
-      );
-
-      const localPoint =
-        this.faces[this.charNumber].hairSprite.toLocal(globalPoint);
-
-      const adjustedLocalPoint = {
-        x: localPoint.x + sprite.width / 2,
-        y: localPoint.y + sprite.height / 2,
-      };
-      this.prevX = adjustedLocalPoint.x;
-      this.prevY = adjustedLocalPoint.y;
-    } else {
+    if (target === "face") {
       sprite = this.faces[this.charNumber].sprite;
-      this.prevX = e.globalX - this.x;
-      this.prevY = e.globalY - this.y;
+    } else {
+      sprite = this.faces[this.charNumber].hairSprite;
     }
+    const globalPoint = new Pixi.Point(e.globalX - this.x, e.globalY - this.y);
+
+    const localPoint =
+      this.faces[this.charNumber].sprite.toLocal(globalPoint);
+
+    const adjustedLocalPoint = {
+      x: localPoint.x + sprite.width / 2,
+      y: localPoint.y + sprite.height / 2,
+    };
+    this.prevX = adjustedLocalPoint.x;
+    this.prevY = adjustedLocalPoint.y;
   }
 
   protected onPointerMove(e: Pixi.FederatedPointerEvent) {
     if (this.down) {
       let board = null;
       let sprite = null;
-      if (this.drawTarget === "hair") {
-        board = this.faces[this.charNumber].hairGraphic;
-        sprite = this.faces[this.charNumber].hairSprite;
-        if (board) {
-          board.lineStyle({
-            width: 10,
-            color: 0x000000,
-            cap: Pixi.LINE_CAP.ROUND,
-            join: Pixi.LINE_JOIN.ROUND,
-            scaleMode: LINE_SCALE_MODE.NONE,
-          });
-          const globalPoint = new Pixi.Point(
-            e.globalX - this.x,
-            e.globalY - this.y
-          );
-
-          const localPoint = sprite.toLocal(globalPoint);
-
-          const adjustedLocalPoint = {
-            x: localPoint.x + sprite.width / 2,
-            y: localPoint.y + sprite.height / 2,
-          };
-          board.moveTo(this.prevX, this.prevY);
-          board.lineTo(adjustedLocalPoint.x, adjustedLocalPoint.y);
-          this.prevX = adjustedLocalPoint.x;
-          this.prevY = adjustedLocalPoint.y;
-        }
-      } else {
+      if (this.drawTarget === "face") {
         board = this.faces[this.charNumber].graphic;
         sprite = this.faces[this.charNumber].sprite;
-        if (board) {
-          board.lineStyle({
-            width: 10,
-            color: 0x000000,
-            cap: Pixi.LINE_CAP.ROUND,
-            join: Pixi.LINE_JOIN.ROUND,
-            scaleMode: LINE_SCALE_MODE.NONE,
-          });
-          board.moveTo(this.prevX, this.prevY);
-          board.lineTo(e.globalX - this.x, e.globalY - this.y);
-          this.prevX = e.globalX - this.x;
-          this.prevY = e.globalY - this.y;
-        }
+      } else {
+        board = this.faces[this.charNumber].hairGraphic;
+        sprite = this.faces[this.charNumber].hairSprite;
+      }
+      if (board) {
+        board.lineStyle({
+          width: 10,
+          color: 0x000000,
+          cap: Pixi.LINE_CAP.ROUND,
+          join: Pixi.LINE_JOIN.ROUND,
+          scaleMode: LINE_SCALE_MODE.NONE,
+        });
+        const globalPoint = new Pixi.Point(
+          e.globalX - this.x,
+          e.globalY - this.y
+        );
+
+        const localPoint = sprite.toLocal(globalPoint);
+
+        const adjustedLocalPoint = {
+          x: localPoint.x + sprite.width / 2,
+          y: localPoint.y + sprite.height / 2,
+        };
+        board.moveTo(this.prevX, this.prevY);
+        board.lineTo(adjustedLocalPoint.x, adjustedLocalPoint.y);
+        this.prevX = adjustedLocalPoint.x;
+        this.prevY = adjustedLocalPoint.y;
       }
     }
   }
@@ -426,7 +395,6 @@ export default class DecoDrawing extends Pixi.Container {
   protected onPointerUp(e: Pixi.FederatedPointerEvent) {
     this.down = false;
     this.erase = !this.erase;
-    this.drawTarget = "face";
   }
 
   private async setFacesPosition(direction: string) {
