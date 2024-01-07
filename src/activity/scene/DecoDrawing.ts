@@ -108,13 +108,13 @@ export default class DecoDrawing extends Pixi.Container {
     characterNumber.set(this.charNumber);
   }
 
-  private pointerMoveDisplacementHandler(event: Pixi.FederatedPointerEvent) {
+  private pointerMoveDisplacementHandler(e: Pixi.FederatedPointerEvent) {
     if (
       this.faceForward ||
-      event.clientX < 0 ||
-      event.clientX > Setting.sceneWidth ||
-      event.clientY < 0 ||
-      event.clientY > Setting.sceneHeight
+      e.clientX < 0 ||
+      e.clientX > Setting.sceneWidth ||
+      e.clientY < 0 ||
+      e.clientY > Setting.sceneHeight
     ) {
       return;
     }
@@ -122,8 +122,8 @@ export default class DecoDrawing extends Pixi.Container {
     if (this.displacementFilter[this.charNumber]) {
       const midpointX = Setting.sceneWidth / 2,
         midpointY = Setting.sceneHeight / 2,
-        posX = midpointX - event.clientX,
-        posY = midpointY - event.clientY,
+        posX = midpointX - e.clientX,
+        posY = midpointY - e.clientY,
         valX = (posX / midpointX) * 30,
         valY = (posY / midpointY) * 17;
       this.displacementFilter[this.charNumber].scale.x = valX;
