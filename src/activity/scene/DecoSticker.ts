@@ -6,8 +6,11 @@ import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import * as Interface from "../base/Interface";
 import DecoScene from './DecoScene';
+import { ResourcePath } from "./data/ResourcePath";
 
 export default class Sticker extends Pixi.Container {
+  private sceneName = "sticker";
+  private resourcePath: ResourcePath;
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Interface.Sticker[] = [];
   private charNumber = 0;
@@ -21,6 +24,7 @@ export default class Sticker extends Pixi.Container {
 
   constructor(scene: DecoScene) {
     super();
+    this.resourcePath = new ResourcePath();
     this.scene = scene;
     this.setStickerHive();
     characterNumber.subscribe((value) => {
@@ -29,6 +33,7 @@ export default class Sticker extends Pixi.Container {
   }
 
   private setStickerHive() {
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     this.stickerHive = new Pixi.Graphics();
     this.stickerHive.beginFill(0xffebcd);
     this.stickerHive.drawRoundedRect(0, 0, 160, 550, 10);
@@ -37,21 +42,18 @@ export default class Sticker extends Pixi.Container {
     this.stickerHive.position.set(1200, 300);
     this.addChild(this.stickerHive);
 
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 0; i < 4; i++) {
       let sticker: Interface.Sticker = {
         eye: {
-          sprite: Pixi.Sprite.from(`images/sticker/eye${i}.png`),
-          path: `images/scene/eye${i}.png`,
+          sprite: Pixi.Sprite.from(imagePath.eye[i]),
           position: { x: 1220, y: 150 },
         },
         nose: {
-          sprite: Pixi.Sprite.from(`images/sticker/nose${i}.png`),
-          path: `images/scene/nose${i}.png`,
+          sprite: Pixi.Sprite.from(imagePath.nose[i]),
           position: { x: 1220, y: 350 },
         },
         mouth: {
-          sprite: Pixi.Sprite.from(`images/sticker/mouse${i}.png`),
-          path: `images/scene/mouse${i}.png`,
+          sprite: Pixi.Sprite.from(imagePath.mouth[i]),
           position: { x: 1220, y: 550 },
         },
       };

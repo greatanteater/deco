@@ -13,8 +13,11 @@ import * as Coordinate from "./data/Coordinate";
 import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
+import { ResourcePath } from "./data/ResourcePath";
 
 export default class DecoDrawing extends Pixi.Container {
+  private sceneName = "drawing";
+  private resourcePath: ResourcePath;
   private scene: DecoScene;
   private down = false;
   private erase = false;
@@ -39,12 +42,9 @@ export default class DecoDrawing extends Pixi.Container {
 
   constructor(scene: DecoScene) {
     super();
+    this.resourcePath = new ResourcePath();
     this.scene = scene;
     this.initialize();
-
-    eyesAttachedStatus.subscribe((value) => {
-      this.attachEyeToFace(value[this.charNumber]);
-    });
   }
 
   private async initialize() {
@@ -112,12 +112,13 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private isPointerOverFace(e: Pixi.FederatedPointerEvent) {
-      const charGlobalCoordinates = Coordinate.charGlobalCoordinates[0].coordinates;
-      const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
-        x,
-        y,
-      ]);
-      const hitArea = new Pixi.Polygon(charGlobalPoints);
+    const charGlobalCoordinates =
+      Coordinate.charGlobalCoordinates[0].coordinates;
+    const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
+      x,
+      y,
+    ]);
+    const hitArea = new Pixi.Polygon(charGlobalPoints);
 
     if (hitArea.contains(e.globalX - this.x, e.globalY - this.y)) {
       this.isMovingWithinFace = true;
@@ -236,6 +237,7 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private async setFaces() {
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     const displacementData = [
       {
         imagePath: "images/scene/map1.jpg",
@@ -279,7 +281,7 @@ export default class DecoDrawing extends Pixi.Container {
       y: Setting.sceneHeight / 2,
     };
 
-    for (const { imagePath, position, charNumber } of faceData) {
+    for (const { position, charNumber } of faceData) {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
       container.position.set(-1000, this.faceY);
@@ -302,7 +304,7 @@ export default class DecoDrawing extends Pixi.Container {
 
       this.filter = new OutlineFilter(2, 0x000000);
 
-      const maskLoad = await Pixi.Assets.load("images/drawing/mini.png");
+      const maskLoad = await Pixi.Assets.load(imagePath.face[charNumber]);
       const sprite = Pixi.Sprite.from(maskLoad);
       sprite.anchor.set(0.5);
       sprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
@@ -324,7 +326,7 @@ export default class DecoDrawing extends Pixi.Container {
 
       container.addChild(graphic, sprite);
 
-      const hairMaskLoad = await Pixi.Assets.load("images/drawing/mini2.png");
+      const hairMaskLoad = await Pixi.Assets.load(imagePath.hair[charNumber]);
       const hairSprite = Pixi.Sprite.from(hairMaskLoad);
       hairSprite.anchor.set(0.5);
       hairSprite.position.set(
@@ -529,7 +531,8 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private setButton() {
-    this.leftButtonSprite = Pixi.Sprite.from("images/scene/left.png");
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
+    this.leftButtonSprite = Pixi.Sprite.from(imagePath.left as string);
     this.leftButtonSprite.width = 70;
     this.leftButtonSprite.height = 70;
     this.leftButtonSprite.anchor.set(0.5);
@@ -543,7 +546,7 @@ export default class DecoDrawing extends Pixi.Container {
     });
     this.addChild(this.leftButtonSprite);
 
-    this.rightButtonSprite = Pixi.Sprite.from("images/scene/right.png");
+    this.rightButtonSprite = Pixi.Sprite.from(imagePath.right as string);
     this.rightButtonSprite.width = 70;
     this.rightButtonSprite.height = 70;
     this.rightButtonSprite.anchor.set(0.5);
@@ -559,20 +562,15 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private faceFeatures() {
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     for (let i = 0; i < 4; i++) {
       const eyes: Interface.Eyes = {
         left: {
-          sprite: new Pixi.Sprite(
-            Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)
-          ),
-          path: `images/scene/eye${i}.png`,
+          sprite: new Pixi.Sprite(Pixi.Texture.from(imagePath.eye[i])),
           position: Coordinate.faceFeaturePositions[i].eyes.left,
         },
         right: {
-          sprite: new Pixi.Sprite(
-            Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)
-          ),
-          path: `images/scene/eye${i}.png`,
+          sprite: new Pixi.Sprite(Pixi.Texture.from(imagePath.eye[i])),
           position: Coordinate.faceFeaturePositions[i].eyes.right,
         },
       };
@@ -593,8 +591,6 @@ export default class DecoDrawing extends Pixi.Container {
     }
   }
 
-  private attachEyeToFace(enable: boolean) {}
-
   private destroyButton() {
     if (this.leftButtonSprite) {
       this.leftButtonSprite.destroy();
@@ -608,16 +604,12 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private destroyFace() {
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     for (const { container, charNumber } of this.faceContainers) {
-      // 객체에 대한 참조를 제거
       this.removeChild(container);
-
-      // 필터 제거
       if (this.displacementFilter[charNumber]) {
         this.displacementFilter[charNumber].destroy();
       }
-
-      // face 데이터 제거
       const face = this.faces.find((face) => face.charNumber === charNumber);
       if (face) {
         face.displacement.destroy();
@@ -627,13 +619,19 @@ export default class DecoDrawing extends Pixi.Container {
         face.hairGraphic.destroy();
       }
     }
-
-    // 배열 초기화
     this.displacementFilter = [];
     this.faceContainers = [];
     this.faces = [];
-    Pixi.Assets.unload("images/drawing/mini.png");
-    Pixi.Assets.unload("images/drawing/mini2.png");
+    if (Array.isArray(imagePath.face)) {
+      imagePath.face.forEach((path) => {
+        Pixi.Assets.unload(path);
+      });
+    }
+    if (Array.isArray(imagePath.hair)) {
+      imagePath.hair.forEach((path) => {
+        Pixi.Assets.unload(path);
+      });
+    }
   }
 
   public destroy() {

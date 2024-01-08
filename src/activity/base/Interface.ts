@@ -46,18 +46,15 @@ export interface Eyes {
 }
 export interface Eye {
   sprite: Pixi.Sprite;
-  path: string;
   position: Position;
 }
 
 export interface Nose {
   sprite: Pixi.Sprite;
-  path: string;
   position: Position;
 }
 
 export interface Mouth {
   sprite: Pixi.Sprite;
-  path: string;
   position: Position;
 }
