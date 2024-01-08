@@ -1,19 +1,19 @@
 import * as Pixi from "pixi.js";
-import Setting from "../base/Setting";
-import { wait } from "../util/Util";
+import Setting from "../../base/Setting";
+import { wait } from "../../util/Util";
 import { get } from "svelte/store";
 import {
   currentView,
   characterNumber,
   eyesAttachedStatus,
-} from "../store/store";
+} from "../../store/store";
 import { gsap } from "gsap";
-import * as Interface from "../base/Interface";
-import * as Coordinate from "./data/Coordinate";
-import DecoScene from "./DecoScene";
+import * as Interface from "../../base/Interface";
+import * as Coordinate from "../data/Coordinate";
+import DecoScene from "../DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
-import { getAssets } from "./data/Resource";
+import { getAssets } from "../data/Resource";
 
 export default class DecoDrawing extends Pixi.Container {
   private sceneName = "drawing";

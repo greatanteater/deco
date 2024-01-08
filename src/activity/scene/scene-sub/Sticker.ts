@@ -1,12 +1,12 @@
 import * as Pixi from "pixi.js";
-import Setting from "../base/Setting";
-import { wait } from "../util/Util";
+import Setting from "../../base/Setting";
+import { wait } from "../../util/Util";
 import { get } from "svelte/store";
-import { currentView, characterNumber } from "../store/store";
+import { currentView, characterNumber } from "../../store/store";
 import { gsap } from "gsap";
-import * as Interface from "../base/Interface";
-import DecoScene from './DecoScene';
-import { getAssets } from "./data/Resource";
+import * as Interface from "../../base/Interface";
+import DecoScene from '../DecoScene';
+import { getAssets } from "../data/Resource";
 
 export default class Sticker extends Pixi.Container {
   private sceneName = "sticker";

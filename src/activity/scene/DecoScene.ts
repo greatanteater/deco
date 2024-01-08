@@ -4,8 +4,8 @@ import { wait } from "../util/Util";
 import { get } from "svelte/store";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-import Sticker from "./DecoSticker";
-import Drawing from "./DecoDrawing";
+import Sticker from "./scene-sub/Sticker";
+import Drawing from "./scene-sub/Drawing";
 import { getAssets } from "./data/Resource";
 
 export default class DecoScene extends Pixi.Container {
