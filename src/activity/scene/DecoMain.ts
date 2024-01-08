@@ -30,9 +30,6 @@ export default class DecoMain extends Pixi.Container {
   }
 
   private setSound() {
-    console.log("개빡치네");
-    console.log(this.imageAssets);
-    console.log(this.soundAssets);
     this.startSound = PixiSound.Sound.from(this.soundAssets.start.path);
     this.startSound.play();
   }
