@@ -13,7 +13,7 @@ import * as Coordinate from "./data/Coordinate";
 import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
-import { ResourcePath } from "./data/ResourcePath";
+import { ResourcePath } from "./data/Resource";
 
 export default class DecoDrawing extends Pixi.Container {
   private sceneName = "drawing";

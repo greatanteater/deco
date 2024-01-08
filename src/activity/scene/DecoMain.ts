@@ -4,7 +4,7 @@ import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-import { ResourcePath } from './data/ResourcePath';
+import { ResourcePath } from './data/Resource';
 
 export default class DecoMain extends Pixi.Container {
   private sceneName = "main";
