@@ -6,11 +6,11 @@ import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import * as Interface from "../base/Interface";
 import DecoScene from './DecoScene';
-import { ResourcePath } from "./data/Resource";
+import { getAssets } from "./data/Resource";
 
 export default class Sticker extends Pixi.Container {
   private sceneName = "sticker";
-  private resourcePath: ResourcePath;
+  private sceneAssets: { [key: string]: any };
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Interface.Sticker[] = [];
   private charNumber = 0;
@@ -24,7 +24,7 @@ export default class Sticker extends Pixi.Container {
 
   constructor(scene: DecoScene) {
     super();
-    this.resourcePath = new ResourcePath();
+    this.sceneAssets = getAssets(this.sceneName);
     this.scene = scene;
     this.setStickerHive();
     characterNumber.subscribe((value) => {
@@ -33,7 +33,6 @@ export default class Sticker extends Pixi.Container {
   }
 
   private setStickerHive() {
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     this.stickerHive = new Pixi.Graphics();
     this.stickerHive.beginFill(0xffebcd);
     this.stickerHive.drawRoundedRect(0, 0, 160, 550, 10);
@@ -45,15 +44,15 @@ export default class Sticker extends Pixi.Container {
     for (let i = 0; i < 4; i++) {
       let sticker: Interface.Sticker = {
         eye: {
-          sprite: Pixi.Sprite.from(imagePath.eye[i]),
+          sprite: Pixi.Sprite.from(this.sceneAssets.eye[i].path),
           position: { x: 1220, y: 150 },
         },
         nose: {
-          sprite: Pixi.Sprite.from(imagePath.nose[i]),
+          sprite: Pixi.Sprite.from(this.sceneAssets.nose[i].path),
           position: { x: 1220, y: 350 },
         },
         mouth: {
-          sprite: Pixi.Sprite.from(imagePath.mouth[i]),
+          sprite: Pixi.Sprite.from(this.sceneAssets.mouth[i].path),
           position: { x: 1220, y: 550 },
         },
       };

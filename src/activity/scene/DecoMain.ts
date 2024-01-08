@@ -4,11 +4,11 @@ import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-import { ResourcePath } from './data/Resource';
+import { getAssets } from './data/Resource';
 
 export default class DecoMain extends Pixi.Container {
   private sceneName = "main";
-  private resourcePath: ResourcePath;
+  private sceneAssets: { [key: string]: any };
   private backgroundSprite: Pixi.Sprite | null = null;
   private mirrorSprite: Pixi.Sprite | null = null;
   private charSprites: Pixi.Sprite[] = [];
@@ -17,7 +17,7 @@ export default class DecoMain extends Pixi.Container {
 
   constructor() {
     super();
-    this.resourcePath = new ResourcePath();
+    this.sceneAssets = getAssets(this.sceneName);
     this.runScene();
   }
 
@@ -33,13 +33,12 @@ export default class DecoMain extends Pixi.Container {
   }
 
   private setBackground() {
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
-    this.backgroundSprite = Pixi.Sprite.from(imagePath.background as string);
+    this.backgroundSprite = Pixi.Sprite.from(this.sceneAssets.background.path);
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
 
-    this.mirrorSprite = Pixi.Sprite.from(imagePath.mirror as string);
+    this.mirrorSprite = Pixi.Sprite.from(this.sceneAssets.mirror.path);
     this.mirrorSprite.width = 270;
     this.mirrorSprite.height = 500;
     this.mirrorSprite.anchor.set(0.5);
@@ -61,9 +60,8 @@ export default class DecoMain extends Pixi.Container {
       },
     ];
 
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     for (const { position, charNumber } of charData) {
-      const sprite = Pixi.Sprite.from(imagePath.character[charNumber]);
+      const sprite = Pixi.Sprite.from(this.sceneAssets.character[charNumber].path);
 
       sprite.width = 300;
       sprite.height = 400;

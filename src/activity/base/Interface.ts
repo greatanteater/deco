@@ -1,6 +1,11 @@
 import * as Pixi from "pixi.js";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 
+export interface LoadableAsset {
+  path: string;
+  count: number;
+}
+
 export interface Position {
   x: number;
   y: number;

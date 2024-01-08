@@ -4,7 +4,7 @@ interface ImagePath {
   [key: string]: string | string[];
 }
 
-export class ResourcePath {
+export class ImageResourcePath {
   private sceneImagePaths: { [key: string]: ImagePath } = {};
 
   constructor() {
@@ -82,4 +82,30 @@ export default class AssetCounter {
   public getResourceCount(sceneName: string): { [key: string]: number } {
     return this.sceneCounts[sceneName];
   }
+}
+
+export function getAssets(sceneName: string): { [key: string]: any } {
+  let resourcePath = new ImageResourcePath();
+  let assetCounter = new AssetCounter();
+
+  let sceneAssets: { [key: string]: any } = {};
+  let imagePaths = resourcePath.getImagePath(sceneName);
+  let resourceCounts = assetCounter.getResourceCount(sceneName);
+
+  Object.keys(imagePaths).forEach((resourceType) => {
+    if (resourceCounts[resourceType] === 1) {
+      sceneAssets[resourceType] = {
+        path: imagePaths[resourceType],
+        count: resourceCounts[resourceType],
+      };
+    } else {
+      let resourceObj: { [key: number]: { path: string, count: number } } = {};
+      for (let i = 0; i < resourceCounts[resourceType]; i++) {
+        resourceObj[i] = { path: imagePaths[resourceType][i], count: 1 };
+      }
+      sceneAssets[resourceType] = resourceObj;
+    }
+  });
+
+  return sceneAssets;
 }

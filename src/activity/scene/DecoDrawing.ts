@@ -13,11 +13,11 @@ import * as Coordinate from "./data/Coordinate";
 import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
-import { ResourcePath } from "./data/Resource";
+import { getAssets } from "./data/Resource";
 
 export default class DecoDrawing extends Pixi.Container {
   private sceneName = "drawing";
-  private resourcePath: ResourcePath;
+  private sceneAssets: { [key: string]: any };
   private scene: DecoScene;
   private down = false;
   private erase = false;
@@ -42,7 +42,7 @@ export default class DecoDrawing extends Pixi.Container {
 
   constructor(scene: DecoScene) {
     super();
-    this.resourcePath = new ResourcePath();
+    this.sceneAssets = getAssets(this.sceneName);
     this.scene = scene;
     this.initialize();
   }
@@ -237,7 +237,6 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private async setFaces() {
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     const displacementData = [
       {
         imagePath: "images/scene/map1.jpg",
@@ -304,7 +303,9 @@ export default class DecoDrawing extends Pixi.Container {
 
       this.filter = new OutlineFilter(2, 0x000000);
 
-      const maskLoad = await Pixi.Assets.load(imagePath.face[charNumber]);
+      const maskLoad = await Pixi.Assets.load(
+        this.sceneAssets.face[charNumber].path
+      );
       const sprite = Pixi.Sprite.from(maskLoad);
       sprite.anchor.set(0.5);
       sprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
@@ -326,7 +327,9 @@ export default class DecoDrawing extends Pixi.Container {
 
       container.addChild(graphic, sprite);
 
-      const hairMaskLoad = await Pixi.Assets.load(imagePath.hair[charNumber]);
+      const hairMaskLoad = await Pixi.Assets.load(
+        this.sceneAssets.hair[charNumber].path
+      );
       const hairSprite = Pixi.Sprite.from(hairMaskLoad);
       hairSprite.anchor.set(0.5);
       hairSprite.position.set(
@@ -531,8 +534,7 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private setButton() {
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
-    this.leftButtonSprite = Pixi.Sprite.from(imagePath.left as string);
+    this.leftButtonSprite = Pixi.Sprite.from(this.sceneAssets.left.path);
     this.leftButtonSprite.width = 70;
     this.leftButtonSprite.height = 70;
     this.leftButtonSprite.anchor.set(0.5);
@@ -546,7 +548,7 @@ export default class DecoDrawing extends Pixi.Container {
     });
     this.addChild(this.leftButtonSprite);
 
-    this.rightButtonSprite = Pixi.Sprite.from(imagePath.right as string);
+    this.rightButtonSprite = Pixi.Sprite.from(this.sceneAssets.right.path);
     this.rightButtonSprite.width = 70;
     this.rightButtonSprite.height = 70;
     this.rightButtonSprite.anchor.set(0.5);
@@ -562,15 +564,18 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private faceFeatures() {
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     for (let i = 0; i < 4; i++) {
       const eyes: Interface.Eyes = {
         left: {
-          sprite: new Pixi.Sprite(Pixi.Texture.from(imagePath.eye[i])),
+          sprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.sceneAssets.eye[i].path)
+          ),
           position: Coordinate.faceFeaturePositions[i].eyes.left,
         },
         right: {
-          sprite: new Pixi.Sprite(Pixi.Texture.from(imagePath.eye[i])),
+          sprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.sceneAssets.eye[i].path)
+          ),
           position: Coordinate.faceFeaturePositions[i].eyes.right,
         },
       };
@@ -604,7 +609,6 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private destroyFace() {
-    const imagePath = this.resourcePath.getImagePath(this.sceneName);
     for (const { container, charNumber } of this.faceContainers) {
       this.removeChild(container);
       if (this.displacementFilter[charNumber]) {
@@ -622,16 +626,13 @@ export default class DecoDrawing extends Pixi.Container {
     this.displacementFilter = [];
     this.faceContainers = [];
     this.faces = [];
-    if (Array.isArray(imagePath.face)) {
-      imagePath.face.forEach((path) => {
-        Pixi.Assets.unload(path);
-      });
-    }
-    if (Array.isArray(imagePath.hair)) {
-      imagePath.hair.forEach((path) => {
-        Pixi.Assets.unload(path);
-      });
-    }
+
+    Object.values<Interface.LoadableAsset>(this.sceneAssets.face).forEach((obj) => {
+      Pixi.Assets.unload(obj.path);
+    });
+    Object.values<Interface.LoadableAsset>(this.sceneAssets.hair).forEach((obj) => {
+      Pixi.Assets.unload(obj.path);
+    });
   }
 
   public destroy() {
