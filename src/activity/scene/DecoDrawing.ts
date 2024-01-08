@@ -33,6 +33,8 @@ export default class DecoDrawing extends Pixi.Container {
   private nose: Data.Nose[] = [];
   private mouse: Data.Mouse[] = [];
   private faceForward = false;
+  private isDisplacementAnimation = false;
+  private isMovingWithinFace = false;
 
   constructor(scene: DecoScene) {
     super();
@@ -108,22 +110,40 @@ export default class DecoDrawing extends Pixi.Container {
     characterNumber.set(this.charNumber);
   }
 
+  private isPointerOverFace(e: Pixi.FederatedPointerEvent) {
+      const charGlobalCoordinates = Data.charGlobalCoordinates[0].coordinates;
+      const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
+        x,
+        y,
+      ]);
+      const hitArea = new Pixi.Polygon(charGlobalPoints);
+
+    if (hitArea.contains(e.globalX - this.x, e.globalY - this.y)) {
+      this.isMovingWithinFace = true;
+    } else {
+      this.isMovingWithinFace = false;
+    }
+  }
+
   private pointerMoveDisplacementHandler(e: Pixi.FederatedPointerEvent) {
     if (
+      this.down ||
+      this.isDisplacementAnimation ||
       this.faceForward ||
       e.clientX < 0 ||
       e.clientX > Setting.sceneWidth ||
       e.clientY < 0 ||
       e.clientY > Setting.sceneHeight
     ) {
+      this.isPointerOverFace(e);
       return;
     }
 
     if (this.displacementFilter[this.charNumber]) {
       const midpointX = Setting.sceneWidth / 2,
         midpointY = Setting.sceneHeight / 2,
-        posX = midpointX - e.clientX,
-        posY = midpointY - e.clientY,
+        posX = midpointX - e.globalX - this.x,
+        posY = midpointY - e.globalY - this.x,
         valX = (posX / midpointX) * 30,
         valY = (posY / midpointY) * 17;
       this.displacementFilter[this.charNumber].scale.x = valX;
@@ -146,7 +166,29 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private resetFaceOrientation(e: Pixi.FederatedPointerEvent) {
+    if (!this.faceForward || this.down) {
+      return;
+    }
     this.faceForward = false;
+    if (this.displacementFilter[this.charNumber]) {
+      const midpointX = Setting.sceneWidth / 2,
+        midpointY = Setting.sceneHeight / 2,
+        posX = midpointX - e.globalX - this.x,
+        posY = midpointY - e.globalY - this.y,
+        valX = (posX / midpointX) * 30,
+        valY = (posY / midpointY) * 17;
+      if (!this.isMovingWithinFace) {
+        this.isDisplacementAnimation = true;
+        gsap.to(this.displacementFilter[this.charNumber].scale, {
+          x: valX,
+          y: valY,
+          duration: 0.2,
+          onComplete: () => {
+            this.isDisplacementAnimation = false;
+          },
+        });
+      }
+    }
   }
 
   private greatBoard() {
@@ -170,7 +212,7 @@ export default class DecoDrawing extends Pixi.Container {
       y: localPoint.y + this.faces[this.charNumber].sprite.height / 2,
     };
 
-    console.log(`{ x: ${adjustedLocalPoint.x}, y:${adjustedLocalPoint.y} }`);
+    // console.log(`{ x: ${adjustedLocalPoint.x}, y:${adjustedLocalPoint.y} }`);
 
     this.drawPoint2(e);
   }
@@ -179,7 +221,7 @@ export default class DecoDrawing extends Pixi.Container {
     this.prevX = e.globalX - this.x;
     this.prevY = e.globalY - this.y;
 
-    // console.log(`{ x: ${this.prevX}, y:${this.prevY} }`);
+    console.log(`{ x: ${this.prevX}, y:${this.prevY} }`);
 
     const radius = 2; // 점의 반지름
     const color = 0x000000; // 점의 색상
@@ -336,20 +378,25 @@ export default class DecoDrawing extends Pixi.Container {
     let sprite = null;
     if (target === "face") {
       sprite = this.faces[this.charNumber].sprite;
-    } else {
+    } else if (this.drawTarget === "hair") {
       sprite = this.faces[this.charNumber].hairSprite;
     }
-    const globalPoint = new Pixi.Point(e.globalX - this.x, e.globalY - this.y);
 
-    const localPoint =
-      sprite.toLocal(globalPoint);
+    if (sprite) {
+      const globalPoint = new Pixi.Point(
+        e.globalX - this.x,
+        e.globalY - this.y
+      );
 
-    const adjustedLocalPoint = {
-      x: localPoint.x + sprite.width / 2,
-      y: localPoint.y + sprite.height / 2,
-    };
-    this.prevX = adjustedLocalPoint.x;
-    this.prevY = adjustedLocalPoint.y;
+      const localPoint = sprite.toLocal(globalPoint);
+
+      const adjustedLocalPoint = {
+        x: localPoint.x + sprite.width / 2,
+        y: localPoint.y + sprite.height / 2,
+      };
+      this.prevX = adjustedLocalPoint.x;
+      this.prevY = adjustedLocalPoint.y;
+    }
   }
 
   protected onPointerMove(e: Pixi.FederatedPointerEvent) {
@@ -359,7 +406,7 @@ export default class DecoDrawing extends Pixi.Container {
       if (this.drawTarget === "face") {
         board = this.faces[this.charNumber].graphic;
         sprite = this.faces[this.charNumber].sprite;
-      } else {
+      } else if (this.drawTarget === "hair") {
         board = this.faces[this.charNumber].hairGraphic;
         sprite = this.faces[this.charNumber].hairSprite;
       }
@@ -376,16 +423,18 @@ export default class DecoDrawing extends Pixi.Container {
           e.globalY - this.y
         );
 
-        const localPoint = sprite.toLocal(globalPoint);
+        if (sprite) {
+          const localPoint = sprite.toLocal(globalPoint);
 
-        const adjustedLocalPoint = {
-          x: localPoint.x + sprite.width / 2,
-          y: localPoint.y + sprite.height / 2,
-        };
-        board.moveTo(this.prevX, this.prevY);
-        board.lineTo(adjustedLocalPoint.x, adjustedLocalPoint.y);
-        this.prevX = adjustedLocalPoint.x;
-        this.prevY = adjustedLocalPoint.y;
+          const adjustedLocalPoint = {
+            x: localPoint.x + sprite.width / 2,
+            y: localPoint.y + sprite.height / 2,
+          };
+          board.moveTo(this.prevX, this.prevY);
+          board.lineTo(adjustedLocalPoint.x, adjustedLocalPoint.y);
+          this.prevX = adjustedLocalPoint.x;
+          this.prevY = adjustedLocalPoint.y;
+        }
       }
     }
   }
@@ -393,6 +442,7 @@ export default class DecoDrawing extends Pixi.Container {
   protected onPointerUp(e: Pixi.FederatedPointerEvent) {
     this.down = false;
     this.erase = !this.erase;
+    this.drawTarget = "";
   }
 
   private async setFacesPosition(direction: string) {
@@ -581,6 +631,8 @@ export default class DecoDrawing extends Pixi.Container {
     this.displacementFilter = [];
     this.faceContainers = [];
     this.faces = [];
+    Pixi.Assets.unload("images/drawing/mini.png");
+    Pixi.Assets.unload("images/drawing/mini2.png");
   }
 
   public destroy() {
