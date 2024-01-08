@@ -4,8 +4,11 @@ import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
+import { ResourcePath } from './data/ResourcePath';
 
 export default class DecoMain extends Pixi.Container {
+  private sceneName = "main";
+  private resourcePath: ResourcePath;
   private backgroundSprite: Pixi.Sprite | null = null;
   private mirrorSprite: Pixi.Sprite | null = null;
   private charSprites: Pixi.Sprite[] = [];
@@ -14,6 +17,7 @@ export default class DecoMain extends Pixi.Container {
 
   constructor() {
     super();
+    this.resourcePath = new ResourcePath();
     this.runScene();
   }
 
@@ -29,12 +33,13 @@ export default class DecoMain extends Pixi.Container {
   }
 
   private setBackground() {
-    this.backgroundSprite = Pixi.Sprite.from("images/main/background.jpg");
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
+    this.backgroundSprite = Pixi.Sprite.from(imagePath.background as string);
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
 
-    this.mirrorSprite = Pixi.Sprite.from("images/main/great.png");
+    this.mirrorSprite = Pixi.Sprite.from(imagePath.mirror as string);
     this.mirrorSprite.width = 270;
     this.mirrorSprite.height = 500;
     this.mirrorSprite.anchor.set(0.5);
@@ -47,19 +52,18 @@ export default class DecoMain extends Pixi.Container {
 
     const charData = [
       {
-        imagePath: "images/main/char1.png",
         position: { x: 300, y: 400 },
         charNumber: 0,
       },
       {
-        imagePath: "images/main/char2.png",
         position: { x: 1000, y: 400 },
         charNumber: 1,
       },
     ];
 
-    for (const { imagePath, position, charNumber } of charData) {
-      const sprite = Pixi.Sprite.from(imagePath);
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
+    for (const { position, charNumber } of charData) {
+      const sprite = Pixi.Sprite.from(imagePath.character[charNumber]);
 
       sprite.width = 300;
       sprite.height = 400;
