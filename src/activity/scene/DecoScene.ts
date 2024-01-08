@@ -10,7 +10,7 @@ import { getAssets } from "./data/Resource";
 
 export default class DecoScene extends Pixi.Container {
   private sceneName = "scene";
-  private sceneAssets: { [key: string]: any };
+  private imageAssets: { [key: string]: any };
   public backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
   private drawing: Drawing | null = null;
@@ -18,7 +18,7 @@ export default class DecoScene extends Pixi.Container {
 
   constructor() {
     super();
-    this.sceneAssets = getAssets(this.sceneName);
+    this.imageAssets = getAssets(this.sceneName).image;
     this.interactive = true;
     this.initialize();
   }
@@ -53,14 +53,14 @@ export default class DecoScene extends Pixi.Container {
   }
 
   private setBackground() {
-    this.backgroundSprite = Pixi.Sprite.from(this.sceneAssets.background.path);
+    this.backgroundSprite = Pixi.Sprite.from(this.imageAssets.background.path);
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
   }
 
   private setButton() {
-    this.backButtonSprite = Pixi.Sprite.from(this.sceneAssets.back.path);
+    this.backButtonSprite = Pixi.Sprite.from(this.imageAssets.back.path);
     this.backButtonSprite.width = 70;
     this.backButtonSprite.height = 70;
     this.backButtonSprite.anchor.set(0.5);

@@ -8,7 +8,8 @@ import { getAssets } from './data/Resource';
 
 export default class DecoMain extends Pixi.Container {
   private sceneName = "main";
-  private sceneAssets: { [key: string]: any };
+  private imageAssets: { [key: string]: any };
+  private soundAssets: { [key: string]: any };
   private backgroundSprite: Pixi.Sprite | null = null;
   private mirrorSprite: Pixi.Sprite | null = null;
   private charSprites: Pixi.Sprite[] = [];
@@ -17,28 +18,32 @@ export default class DecoMain extends Pixi.Container {
 
   constructor() {
     super();
-    this.sceneAssets = getAssets(this.sceneName);
+    this.imageAssets = getAssets(this.sceneName).image;
+    this.soundAssets = getAssets(this.sceneName).sound;
     this.runScene();
   }
 
   private runScene() {
     this.setBackground();
     this.setChars();
-    // this.setSound();
+    this.setSound();
   }
 
   private setSound() {
-    this.startSound = PixiSound.Sound.from("sounds/start.mp3");
+    console.log("개빡치네");
+    console.log(this.imageAssets);
+    console.log(this.soundAssets);
+    this.startSound = PixiSound.Sound.from(this.soundAssets.start.path);
     this.startSound.play();
   }
 
   private setBackground() {
-    this.backgroundSprite = Pixi.Sprite.from(this.sceneAssets.background.path);
+    this.backgroundSprite = Pixi.Sprite.from(this.imageAssets.background.path);
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
 
-    this.mirrorSprite = Pixi.Sprite.from(this.sceneAssets.mirror.path);
+    this.mirrorSprite = Pixi.Sprite.from(this.imageAssets.mirror.path);
     this.mirrorSprite.width = 270;
     this.mirrorSprite.height = 500;
     this.mirrorSprite.anchor.set(0.5);
@@ -61,7 +66,7 @@ export default class DecoMain extends Pixi.Container {
     ];
 
     for (const { position, charNumber } of charData) {
-      const sprite = Pixi.Sprite.from(this.sceneAssets.character[charNumber].path);
+      const sprite = Pixi.Sprite.from(this.imageAssets.character[charNumber].path);
 
       sprite.width = 300;
       sprite.height = 400;

@@ -10,7 +10,7 @@ import { getAssets } from "./data/Resource";
 
 export default class Sticker extends Pixi.Container {
   private sceneName = "sticker";
-  private sceneAssets: { [key: string]: any };
+  private imageAssets: { [key: string]: any };
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Interface.Sticker[] = [];
   private charNumber = 0;
@@ -24,7 +24,7 @@ export default class Sticker extends Pixi.Container {
 
   constructor(scene: DecoScene) {
     super();
-    this.sceneAssets = getAssets(this.sceneName);
+    this.imageAssets = getAssets(this.sceneName).image;
     this.scene = scene;
     this.setStickerHive();
     characterNumber.subscribe((value) => {
@@ -44,15 +44,15 @@ export default class Sticker extends Pixi.Container {
     for (let i = 0; i < 4; i++) {
       let sticker: Interface.Sticker = {
         eye: {
-          sprite: Pixi.Sprite.from(this.sceneAssets.eye[i].path),
+          sprite: Pixi.Sprite.from(this.imageAssets.eye[i].path),
           position: { x: 1220, y: 150 },
         },
         nose: {
-          sprite: Pixi.Sprite.from(this.sceneAssets.nose[i].path),
+          sprite: Pixi.Sprite.from(this.imageAssets.nose[i].path),
           position: { x: 1220, y: 350 },
         },
         mouth: {
-          sprite: Pixi.Sprite.from(this.sceneAssets.mouth[i].path),
+          sprite: Pixi.Sprite.from(this.imageAssets.mouth[i].path),
           position: { x: 1220, y: 550 },
         },
       };
