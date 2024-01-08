@@ -1,68 +1,6 @@
-import * as Pixi from "pixi.js";
-import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
+import * as Interface from "../../base/Interface";
 
-export interface Position {
-  x: number;
-  y: number;
-}
-
-interface FaceFeaturePositions {
-  eyes: {
-    left: Position;
-    right: Position;
-  };
-  nose: Position;
-  mouth: Position;
-}
-
-export interface Coordinate {
-  coordinates: Position[];
-}
-
-export interface Face {
-  displacement: Pixi.Sprite;
-  sprite: Pixi.Sprite;
-  graphic: SmoothGraphics;
-  hairSprite: Pixi.Sprite;
-  hairGraphic: SmoothGraphics;
-  charNumber: number;
-  faceCoordinate: Position[];
-  hairCoordinate: Position[];
-}
-export interface FaceContainer {
-  container: Pixi.Container;
-  charNumber: number;
-}
-
-export interface Sticker {
-  eye: Eye;
-  nose: Nose;
-  mouse: Mouse;
-}
-
-export interface Eyes {
-  left: Eye;
-  right: Eye;
-}
-export interface Eye {
-  sprite: Pixi.Sprite;
-  path: string;
-  position: Position;
-}
-
-export interface Nose {
-  sprite: Pixi.Sprite;
-  path: string;
-  position: Position;
-}
-
-export interface Mouse {
-  sprite: Pixi.Sprite;
-  path: string;
-  position: Position;
-}
-
-export const faceFeaturePositions: FaceFeaturePositions[] = [
+export const faceFeaturePositions: Interface.FaceFeaturePositions[] = [
   {
     // 1번 캐릭터
     eyes: {
@@ -101,7 +39,7 @@ export const faceFeaturePositions: FaceFeaturePositions[] = [
   },
 ];
 
-export const hairCoordinates: Coordinate[] = [
+export const hairCoordinates: Interface.Coordinate[] = [
   {
     // 1번 캐릭터
     coordinates: [
@@ -178,7 +116,7 @@ export const hairCoordinates: Coordinate[] = [
   },
 ];
 
-export const faceCoordinates: Coordinate[] = [
+export const faceCoordinates: Interface.Coordinate[] = [
   {
     // 1번 캐릭터
     coordinates: [
@@ -230,7 +168,7 @@ export const faceCoordinates: Coordinate[] = [
   },
 ];
 
-export const charGlobalCoordinates: Coordinate[] = [
+export const charGlobalCoordinates: Interface.Coordinate[] = [
   {
     // 1번 캐릭터
     coordinates: [

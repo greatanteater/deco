@@ -4,12 +4,12 @@ import { wait } from "../util/Util";
 import { get } from "svelte/store";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-import * as Data from "./DecoData";
+import * as Interface from "../base/Interface";
 import DecoScene from './DecoScene';
 
 export default class Sticker extends Pixi.Container {
   private stickerHive: Pixi.Graphics | null = null;
-  private stickers: Data.Sticker[] = [];
+  private stickers: Interface.Sticker[] = [];
   private charNumber = 0;
   private dragging = false;
   private draggingSprite: Pixi.Sprite | null = null;
@@ -38,7 +38,7 @@ export default class Sticker extends Pixi.Container {
     this.addChild(this.stickerHive);
 
     for (let i = 1; i <= 4; i++) {
-      let sticker: Data.Sticker = {
+      let sticker: Interface.Sticker = {
         eye: {
           sprite: Pixi.Sprite.from(`images/sticker/eye${i}.png`),
           path: `images/scene/eye${i}.png`,
@@ -49,7 +49,7 @@ export default class Sticker extends Pixi.Container {
           path: `images/scene/nose${i}.png`,
           position: { x: 1220, y: 350 },
         },
-        mouse: {
+        mouth: {
           sprite: Pixi.Sprite.from(`images/sticker/mouse${i}.png`),
           path: `images/scene/mouse${i}.png`,
           position: { x: 1220, y: 550 },
@@ -63,26 +63,26 @@ export default class Sticker extends Pixi.Container {
       sticker.nose.sprite.height = 100;
       sticker.nose.sprite.position.set(-1000, 500);
       sticker.nose.sprite.anchor.set(0.5);
-      sticker.mouse.sprite.width = 100;
-      sticker.mouse.sprite.height = 100;
-      sticker.mouse.sprite.position.set(-1000, 500);
-      sticker.mouse.sprite.anchor.set(0.5);
+      sticker.mouth.sprite.width = 100;
+      sticker.mouth.sprite.height = 100;
+      sticker.mouth.sprite.position.set(-1000, 500);
+      sticker.mouth.sprite.anchor.set(0.5);
       this.stickers.push(sticker);
     }
 
     for (let sticker of this.stickers) {
       this.addChild(sticker.eye.sprite);
       this.addChild(sticker.nose.sprite);
-      this.addChild(sticker.mouse.sprite);
+      this.addChild(sticker.mouth.sprite);
 
       this.setDragAndDrop(sticker.eye.sprite);
       this.setDragAndDrop(sticker.nose.sprite);
-      this.setDragAndDrop(sticker.mouse.sprite);
+      this.setDragAndDrop(sticker.mouth.sprite);
     }
   }
 
   private setPositonStickers(number: number) {
-    this.stickers.forEach((sticker: Data.Sticker, i: number) => {
+    this.stickers.forEach((sticker: Interface.Sticker, i: number) => {
       if (i === number) {
         sticker.eye.sprite.position.set(
           sticker.eye.position.x,
@@ -92,14 +92,14 @@ export default class Sticker extends Pixi.Container {
           sticker.nose.position.x,
           sticker.nose.position.y
         );
-        sticker.mouse.sprite.position.set(
-          sticker.mouse.position.x,
-          sticker.mouse.position.y
+        sticker.mouth.sprite.position.set(
+          sticker.mouth.position.x,
+          sticker.mouth.position.y
         );
       } else {
         sticker.eye.sprite.position.set(-1000, 500);
         sticker.nose.sprite.position.set(-1000, 500);
-        sticker.mouse.sprite.position.set(-1000, 500);
+        sticker.mouth.sprite.position.set(-1000, 500);
       }
     });
   }
@@ -154,7 +154,7 @@ export default class Sticker extends Pixi.Container {
     for (let sticker of this.stickers) {
       this.removeChild(sticker.eye.sprite);
       this.removeChild(sticker.nose.sprite);
-      this.removeChild(sticker.mouse.sprite);
+      this.removeChild(sticker.mouth.sprite);
     }
 
     this.stickers = [];
@@ -164,7 +164,7 @@ export default class Sticker extends Pixi.Container {
     this.stickers.forEach(sticker => {
       sticker.eye.sprite.off("pointerdown", this.onDragStart, this);
       sticker.nose.sprite.off("pointerdown", this.onDragStart, this);
-      sticker.mouse.sprite.off("pointerdown", this.onDragStart, this);
+      sticker.mouth.sprite.off("pointerdown", this.onDragStart, this);
     });
   
     this.scene.off("pointerup", this.onDragEnd, this);

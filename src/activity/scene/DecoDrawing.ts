@@ -8,7 +8,8 @@ import {
   eyesAttachedStatus,
 } from "../store/store";
 import { gsap } from "gsap";
-import * as Data from "./DecoData";
+import * as Interface from "../base/Interface";
+import * as Coordinate from "./data/Coordinate";
 import DecoScene from "./DecoScene";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
@@ -19,7 +20,7 @@ export default class DecoDrawing extends Pixi.Container {
   private erase = false;
   private prevX = 0;
   private prevY = 0;
-  private faces: Data.Face[] = [];
+  private faces: Interface.Face[] = [];
   private leftButtonSprite: Pixi.Sprite | null = null;
   private rightButtonSprite: Pixi.Sprite | null = null;
   private faceMoving = false;
@@ -27,11 +28,11 @@ export default class DecoDrawing extends Pixi.Container {
   private filter: OutlineFilter | null = null;
   private charNumber = 0;
   private faceY = 0;
-  private faceContainers: Data.FaceContainer[] = [];
+  private faceContainers: Interface.FaceContainer[] = [];
   private drawTarget: string = "";
-  private eyes: Data.Eyes[] = [];
-  private nose: Data.Nose[] = [];
-  private mouse: Data.Mouse[] = [];
+  private eyes: Interface.Eyes[] = [];
+  private nose: Interface.Nose[] = [];
+  private mouth: Interface.Mouth[] = [];
   private faceForward = false;
   private isDisplacementAnimation = false;
   private isMovingWithinFace = false;
@@ -111,7 +112,7 @@ export default class DecoDrawing extends Pixi.Container {
   }
 
   private isPointerOverFace(e: Pixi.FederatedPointerEvent) {
-      const charGlobalCoordinates = Data.charGlobalCoordinates[0].coordinates;
+      const charGlobalCoordinates = Coordinate.charGlobalCoordinates[0].coordinates;
       const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
         x,
         y,
@@ -313,7 +314,7 @@ export default class DecoDrawing extends Pixi.Container {
       graphic.drawRect(0, 0, sprite.width, sprite.height);
       graphic.pivot.set(sprite.width / 2, sprite.height / 2);
       graphic.position.set(sprite.x, sprite.y);
-      const faceCoordinates = Data.faceCoordinates[0].coordinates;
+      const faceCoordinates = Coordinate.faceCoordinates[0].coordinates;
       const facePoints = faceCoordinates.flatMap(({ x, y }) => [x, y]);
       graphic.hitArea = new Pixi.Polygon(facePoints);
       graphic.interactive = true;
@@ -337,7 +338,7 @@ export default class DecoDrawing extends Pixi.Container {
       hairGraphic.drawRect(0, 0, hairSprite.width, hairSprite.height);
       hairGraphic.pivot.set(hairSprite.width / 2, hairSprite.height / 2);
       hairGraphic.position.set(hairSprite.x, hairSprite.y);
-      const hairCoordinates = Data.hairCoordinates[0].coordinates;
+      const hairCoordinates = Coordinate.hairCoordinates[0].coordinates;
       const hairPoints = hairCoordinates.flatMap(({ x, y }) => [x, y]);
       hairGraphic.hitArea = new Pixi.Polygon(hairPoints);
       hairGraphic.interactive = true;
@@ -350,7 +351,7 @@ export default class DecoDrawing extends Pixi.Container {
         container.filters = [this.displacementFilter[charNumber]];
       }
 
-      const face: Data.Face = {
+      const face: Interface.Face = {
         displacement,
         sprite,
         graphic,
@@ -363,7 +364,7 @@ export default class DecoDrawing extends Pixi.Container {
       this.faces.push(face);
 
       this.addChild(container);
-      const faceContainer: Data.FaceContainer = { container, charNumber };
+      const faceContainer: Interface.FaceContainer = { container, charNumber };
       this.faceContainers.push(faceContainer);
     }
   }
@@ -559,20 +560,20 @@ export default class DecoDrawing extends Pixi.Container {
 
   private faceFeatures() {
     for (let i = 0; i < 4; i++) {
-      const eyes: Data.Eyes = {
+      const eyes: Interface.Eyes = {
         left: {
           sprite: new Pixi.Sprite(
             Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)
           ),
           path: `images/scene/eye${i}.png`,
-          position: Data.faceFeaturePositions[i].eyes.left,
+          position: Coordinate.faceFeaturePositions[i].eyes.left,
         },
         right: {
           sprite: new Pixi.Sprite(
             Pixi.Texture.from(`images/sticker/eye${i + 1}.png`)
           ),
           path: `images/scene/eye${i}.png`,
-          position: Data.faceFeaturePositions[i].eyes.right,
+          position: Coordinate.faceFeaturePositions[i].eyes.right,
         },
       };
       eyes.left.sprite.width = 100;
