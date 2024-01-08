@@ -6,8 +6,11 @@ import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import Sticker from "./DecoSticker";
 import Drawing from "./DecoDrawing";
+import { ResourcePath } from './data/ResourcePath';
 
 export default class DecoScene extends Pixi.Container {
+  private sceneName = "scene";
+  private resourcePath: ResourcePath;
   public backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
   private drawing: Drawing | null = null;
@@ -15,6 +18,7 @@ export default class DecoScene extends Pixi.Container {
 
   constructor() {
     super();
+    this.resourcePath = new ResourcePath();
     this.interactive = true;
     this.initialize();
   }
@@ -49,14 +53,16 @@ export default class DecoScene extends Pixi.Container {
   }
 
   private setBackground() {
-    this.backgroundSprite = Pixi.Sprite.from("images/scene/background.jpg");
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
+    this.backgroundSprite = Pixi.Sprite.from(imagePath.background as string);
     this.backgroundSprite.width = Setting.sceneWidth;
     this.backgroundSprite.height = Setting.sceneHeight;
     this.addChild(this.backgroundSprite);
   }
 
   private setButton() {
-    this.backButtonSprite = Pixi.Sprite.from("images/scene/back.png");
+    const imagePath = this.resourcePath.getImagePath(this.sceneName);
+    this.backButtonSprite = Pixi.Sprite.from(imagePath.back as string);
     this.backButtonSprite.width = 70;
     this.backButtonSprite.height = 70;
     this.backButtonSprite.anchor.set(0.5);

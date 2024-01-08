@@ -10,6 +10,8 @@ export default [
   {
     scene: "scene",
     imageCount: {
+      background: 1,
+      back: 1,
       helper: 1,
       face: 4,
       map: 4,
