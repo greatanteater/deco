@@ -137,7 +137,10 @@ export default class DecoDrawing extends Pixi.Container {
       return;
     }
 
-    if (this.displacementFilter[this.charNumber] && this.featuresMotionFilter[this.charNumber]) {
+    if (
+      this.displacementFilter[this.charNumber] &&
+      this.featuresMotionFilter[this.charNumber]
+    ) {
       const midpointX = Setting.sceneWidth / 2,
         midpointY = Setting.sceneHeight / 2,
         posX = midpointX - e.globalX - this.x,
@@ -620,9 +623,8 @@ export default class DecoDrawing extends Pixi.Container {
   private destroyFace() {
     for (const { container, charNumber } of this.faceContainers) {
       this.removeChild(container);
-      if (this.displacementFilter[charNumber]) {
-        this.displacementFilter[charNumber].destroy();
-      }
+      this.displacementFilter[charNumber].destroy();
+      this.featuresMotionFilter[charNumber].destroy();
       const face = this.faces.find((face) => face.charNumber === charNumber);
       if (face) {
         face.displacement.destroy();
