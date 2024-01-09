@@ -15,7 +15,7 @@ import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
 import { getAssets } from "../data/Resource";
 
-export default class DecoDrawing extends Pixi.Container {
+export default class Drawing extends Pixi.Container {
   private sceneName = "drawing";
   private imageAssets: { [key: string]: any };
   private scene: DecoScene;
@@ -319,6 +319,7 @@ export default class DecoDrawing extends Pixi.Container {
       const maskLoad = await Pixi.Assets.load(
         this.imageAssets.face[charNumber].path
       );
+      console.log('개빡 ' + maskLoad);
       const sprite = Pixi.Sprite.from(maskLoad);
       sprite.anchor.set(0.5);
       sprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);

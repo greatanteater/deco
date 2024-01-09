@@ -6,6 +6,7 @@ import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import Sticker from "./scene-sub/Sticker";
 import Drawing from "./scene-sub/Drawing";
+import Palette from "./scene-sub/Palette";
 import { getAssets } from "./data/Resource";
 
 export default class DecoScene extends Pixi.Container {
@@ -14,6 +15,7 @@ export default class DecoScene extends Pixi.Container {
   public backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
   private drawing: Drawing | null = null;
+  private palette: Palette | null = null;
   private sticker: Sticker | null = null;
 
   constructor() {
@@ -32,6 +34,7 @@ export default class DecoScene extends Pixi.Container {
     this.setBackground();
     this.setButton();
     this.runDrawing();
+    this.runPalette();
     this.runSticker();
   }
 
@@ -45,6 +48,11 @@ export default class DecoScene extends Pixi.Container {
   private runDrawing() {
     this.drawing = new Drawing(this);
     this.addChild(this.drawing);
+  }
+
+  private runPalette() {
+    this.palette = new Palette(this);
+    this.addChild(this.palette);
   }
 
   private runSticker() {
