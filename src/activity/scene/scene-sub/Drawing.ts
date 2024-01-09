@@ -38,7 +38,6 @@ export default class DecoDrawing extends Pixi.Container {
   private mouth: Interface.Mouth[] = [];
   private faceForward = false;
   private isDisplacementAnimation = false;
-  private isMovingWithinFace = false;
 
   constructor(scene: DecoScene) {
     super();
@@ -73,10 +72,6 @@ export default class DecoDrawing extends Pixi.Container {
         (e) => this.onPointerDown(e, "hair"),
         this
       );
-    });
-    this.faceContainers.forEach((faceContainer) => {
-      faceContainer.container.on("pointerover", this.setFaceForward, this);
-      faceContainer.container.on("pointerout", this.resetFaceOrientation, this);
     });
     this.on("pointermove", this.onPointerMove, this);
     this.on("pointerup", this.onPointerUp, this);
@@ -121,23 +116,22 @@ export default class DecoDrawing extends Pixi.Container {
     const hitArea = new Pixi.Polygon(charGlobalPoints);
 
     if (hitArea.contains(e.globalX - this.x, e.globalY - this.y)) {
-      this.isMovingWithinFace = true;
+      this.setFaceForward();
     } else {
-      this.isMovingWithinFace = false;
+      this.resetFaceOrientation(e);
     }
   }
 
   private pointerMoveDisplacementHandler(e: Pixi.FederatedPointerEvent) {
+    this.isPointerOverFace(e);
     if (
       this.down ||
       this.isDisplacementAnimation ||
-      this.faceForward ||
       e.clientX < 0 ||
       e.clientX > Setting.sceneWidth ||
       e.clientY < 0 ||
       e.clientY > Setting.sceneHeight
     ) {
-      this.isPointerOverFace(e);
       return;
     }
 
@@ -152,7 +146,7 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacementFilter[this.charNumber].scale.y = valY;
     }
   }
-  
+
   private changeFilter(target: string) {
     switch (target) {
       case "features":
@@ -172,7 +166,9 @@ export default class DecoDrawing extends Pixi.Container {
         ];
         break;
       default:
-        console.warn(`Invalid target: ${target}. Please use 'eye' or 'face'`);
+        console.warn(
+          `Invalid target: ${target}. Please use 'features' or 'face'`
+        );
         break;
     }
   }
@@ -183,10 +179,15 @@ export default class DecoDrawing extends Pixi.Container {
     }
     this.faceForward = true;
     if (this.displacementFilter[this.charNumber]) {
+      this.isDisplacementAnimation = true;
       gsap.to(this.displacementFilter[this.charNumber].scale, {
         x: 0,
         y: 0,
         duration: 0.2,
+        onComplete: () => {
+          this.isDisplacementAnimation = false;
+          this.changeFilter("features");
+        },
       });
     }
   }
@@ -203,17 +204,16 @@ export default class DecoDrawing extends Pixi.Container {
         posY = midpointY - e.globalY - this.y,
         valX = (posX / midpointX) * 30,
         valY = (posY / midpointY) * 17;
-      if (!this.isMovingWithinFace) {
-        this.isDisplacementAnimation = true;
-        gsap.to(this.displacementFilter[this.charNumber].scale, {
-          x: valX,
-          y: valY,
-          duration: 0.2,
-          onComplete: () => {
-            this.isDisplacementAnimation = false;
-          },
-        });
-      }
+      this.isDisplacementAnimation = true;
+      gsap.to(this.displacementFilter[this.charNumber].scale, {
+        x: valX,
+        y: valY,
+        duration: 0.2,
+        onComplete: () => {
+          this.isDisplacementAnimation = false;
+          this.changeFilter("face");
+        },
+      });
     }
   }
 
