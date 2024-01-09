@@ -28,6 +28,7 @@ export default class DecoDrawing extends Pixi.Container {
   private rightButtonSprite: Pixi.Sprite | null = null;
   private faceMoving = false;
   private displacementFilter: Pixi.DisplacementFilter[] = [];
+  private featuresMotionFilter: Pixi.DisplacementFilter[] = [];
   private filter: OutlineFilter | null = null;
   private charNumber = 0;
   private faceY = 0;
@@ -136,7 +137,7 @@ export default class DecoDrawing extends Pixi.Container {
       return;
     }
 
-    if (this.displacementFilter[this.charNumber]) {
+    if (this.displacementFilter[this.charNumber] && this.featuresMotionFilter[this.charNumber]) {
       const midpointX = Setting.sceneWidth / 2,
         midpointY = Setting.sceneHeight / 2,
         posX = midpointX - e.globalX - this.x,
@@ -145,27 +146,29 @@ export default class DecoDrawing extends Pixi.Container {
         valY = (posY / midpointY) * 17;
       this.displacementFilter[this.charNumber].scale.x = valX;
       this.displacementFilter[this.charNumber].scale.y = valY;
+      this.featuresMotionFilter[this.charNumber].scale.x = valX;
+      this.featuresMotionFilter[this.charNumber].scale.y = valY;
     }
   }
 
   private changeFilter(target: string) {
-    switch (target) {
-      case "features":
-        this.eyes[this.charNumber].left.sprite.filters = [
-          this.displacementFilter[this.charNumber],
-        ];
-        this.eyes[this.charNumber].right.sprite.filters = [
-          this.displacementFilter[this.charNumber],
-        ];
-        this.faceContainers[this.charNumber].container.filters = [];
-        break;
-      case "face":
-        this.eyes[this.charNumber].left.sprite.filters = [];
-        this.eyes[this.charNumber].right.sprite.filters = [];
-        this.faceContainers[this.charNumber].container.filters = [
-          this.displacementFilter[this.charNumber],
-        ];
-        break;
+    if (this.filter) {
+      switch (target) {
+        case "features":
+          this.faces[this.charNumber].hairGraphic.filters = [this.filter];
+          this.faces[this.charNumber].graphic.filters = [this.filter];
+          break;
+        case "face":
+          this.faces[this.charNumber].hairGraphic.filters = [
+            this.displacementFilter[this.charNumber],
+            this.filter,
+          ];
+          this.faces[this.charNumber].graphic.filters = [
+            this.displacementFilter[this.charNumber],
+            this.filter,
+          ];
+          break;
+      }
     }
   }
 
@@ -200,6 +203,7 @@ export default class DecoDrawing extends Pixi.Container {
         posY = midpointY - e.globalY - this.y,
         valX = (posX / midpointX) * 30,
         valY = (posY / midpointY) * 17;
+
       this.isDisplacementAnimation = true;
       this.displacementFilter[this.charNumber].scale.x = 0;
       this.displacementFilter[this.charNumber].scale.y = 0;
@@ -302,6 +306,9 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
         displacement
       );
+      this.featuresMotionFilter[charNumber] = new Pixi.DisplacementFilter(
+        displacement
+      );
       container.addChild(displacement);
 
       this.filter = new OutlineFilter(2, 0x000000);
@@ -355,9 +362,6 @@ export default class DecoDrawing extends Pixi.Container {
       hairGraphic.filters = [this.filter];
 
       container.addChild(hairGraphic, hairSprite);
-      if (this.displacementFilter) {
-        container.filters = [this.displacementFilter[charNumber]];
-      }
 
       const face: Interface.Face = {
         displacement,
@@ -596,6 +600,8 @@ export default class DecoDrawing extends Pixi.Container {
       this.eyes.push(eyes);
       this.faceContainers[i].container.addChild(eyes.left.sprite);
       this.faceContainers[i].container.addChild(eyes.right.sprite);
+      eyes.left.sprite.filters = [this.featuresMotionFilter[i]];
+      eyes.right.sprite.filters = [this.featuresMotionFilter[i]];
     }
   }
 
