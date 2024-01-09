@@ -10,7 +10,7 @@ import { getAssets } from "./data/Resource";
 
 export default class DecoScene extends Pixi.Container {
   private sceneName = "scene";
-  private imageAssets: { [key: string]: any };
+  public imageAssets: { [key: string]: any };
   public backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
   private drawing: Drawing | null = null;

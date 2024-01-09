@@ -152,6 +152,30 @@ export default class DecoDrawing extends Pixi.Container {
       this.displacementFilter[this.charNumber].scale.y = valY;
     }
   }
+  
+  private changeFilter(target: string) {
+    switch (target) {
+      case "features":
+        this.eyes[this.charNumber].left.sprite.filters = [
+          this.displacementFilter[this.charNumber],
+        ];
+        this.eyes[this.charNumber].right.sprite.filters = [
+          this.displacementFilter[this.charNumber],
+        ];
+        this.faceContainers[this.charNumber].container.filters = [];
+        break;
+      case "face":
+        this.eyes[this.charNumber].left.sprite.filters = [];
+        this.eyes[this.charNumber].right.sprite.filters = [];
+        this.faceContainers[this.charNumber].container.filters = [
+          this.displacementFilter[this.charNumber],
+        ];
+        break;
+      default:
+        console.warn(`Invalid target: ${target}. Please use 'eye' or 'face'`);
+        break;
+    }
+  }
 
   private setFaceForward() {
     if (this.faceForward) {
@@ -608,12 +632,16 @@ export default class DecoDrawing extends Pixi.Container {
     this.faceContainers = [];
     this.faces = [];
 
-    Object.values<Interface.LoadableAsset>(this.imageAssets.face).forEach((obj) => {
-      Pixi.Assets.unload(obj.path);
-    });
-    Object.values<Interface.LoadableAsset>(this.imageAssets.hair).forEach((obj) => {
-      Pixi.Assets.unload(obj.path);
-    });
+    Object.values<Interface.LoadableAsset>(this.imageAssets.face).forEach(
+      (obj) => {
+        Pixi.Assets.unload(obj.path);
+      }
+    );
+    Object.values<Interface.LoadableAsset>(this.imageAssets.hair).forEach(
+      (obj) => {
+        Pixi.Assets.unload(obj.path);
+      }
+    );
   }
 
   public destroy() {
