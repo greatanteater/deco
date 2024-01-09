@@ -146,11 +146,13 @@ export default class Drawing extends Pixi.Container {
         posX = midpointX - e.globalX - this.x,
         posY = midpointY - e.globalY - this.x,
         valX = (posX / midpointX) * 30,
-        valY = (posY / midpointY) * 17;
+        valY = (posY / midpointY) * 17,
+        featuresValX = (posX / midpointX) * 30,
+        featuresValY = (posY / midpointY) * 30;
       this.displacementFilter[this.charNumber].scale.x = valX;
       this.displacementFilter[this.charNumber].scale.y = valY;
-      this.featuresMotionFilter[this.charNumber].scale.x = valX;
-      this.featuresMotionFilter[this.charNumber].scale.y = valY;
+      this.featuresMotionFilter[this.charNumber].scale.x = featuresValX;
+      this.featuresMotionFilter[this.charNumber].scale.y = featuresValY;
     }
   }
 
