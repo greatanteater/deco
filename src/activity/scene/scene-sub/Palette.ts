@@ -94,7 +94,7 @@ export default class Palette extends Pixi.Container {
     const mask = new Pixi.Graphics();
     const maskWidth = 300;
     mask.beginFill(0xffffff);
-    mask.drawRect(650 - maskWidth / 2, this.palette.y - this.palette.pivot.y, maskWidth, 100);
+    mask.drawRoundedRect(650 - maskWidth / 2, this.palette.y - this.palette.pivot.y, maskWidth, 50, 30);
     mask.endFill();
     this.addChild(mask);
 
