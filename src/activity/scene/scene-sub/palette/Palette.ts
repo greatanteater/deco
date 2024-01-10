@@ -22,6 +22,10 @@ export default class Palette extends Pixi.Container {
     dragging: false,
   };
   private pensilWidth = 50;
+  private pensils: Pixi.Sprite[] = [];
+  private readyToSelect = true;
+  private startGlobalX = 0;
+  private selectedIndex = 0;
 
   constructor() {
     super();
@@ -74,7 +78,7 @@ export default class Palette extends Pixi.Container {
     this.addChild(sprite);
   }
 
-  public setPosition(x: number, y: number) {
+  public setPalette(x: number, y: number) {
     this.palette = new Pixi.Container();
     this.pensilWidth = 100;
     const totalWidth = this.colors.length * this.pensilWidth;
@@ -131,8 +135,7 @@ export default class Palette extends Pixi.Container {
       sprite.y = 50;
       sprite.interactive = true;
       sprite.on("pointertap", () => {
-        this.selectedColor = this.colors[i];
-        console.log("개빡친다" + i);
+        this.choicePencil(i, sprite);
       });
 
       const integerPart = Math.floor(this.colors.length / 3);
@@ -144,9 +147,15 @@ export default class Palette extends Pixi.Container {
         this.colorRectGroups.rightGroup.push(sprite);
       }
       this.palette.addChild(sprite);
+      this.pensils.push(sprite);
 
       if (i == this.colors.length - 1) {
-        this.palette.hitArea = new Pixi.Rectangle(0, 0, i * this.pensilWidth, maskHeight);
+        this.palette.hitArea = new Pixi.Rectangle(
+          0,
+          0,
+          i * this.pensilWidth,
+          maskHeight
+        );
       }
     }
   }
@@ -158,7 +167,10 @@ export default class Palette extends Pixi.Container {
       ...this.colorRectGroups.rightGroup,
     ];
     const leftMostSprite = allSprites.reduce(
-      (leftMost, sprite) => (sprite.x - sprite.width / 2 < leftMost.x - leftMost.width / 2 ? sprite : leftMost),
+      (leftMost, sprite) =>
+        sprite.x - sprite.width / 2 < leftMost.x - leftMost.width / 2
+          ? sprite
+          : leftMost,
       allSprites[0]
     );
     const rightMostSprite = allSprites.reduce(
@@ -173,14 +185,32 @@ export default class Palette extends Pixi.Container {
       this.palette.hitArea = new Pixi.Rectangle(
         leftMostSprite.x - leftMostSprite.width / 2,
         leftMostSprite.y - leftMostSprite.height / 2,
-        (rightMostSprite.x + rightMostSprite.width / 2) - (leftMostSprite.x - leftMostSprite.width / 2),
-        (rightMostSprite.y + rightMostSprite.height / 2) - (leftMostSprite.y - leftMostSprite.height / 2)
+        rightMostSprite.x +
+          rightMostSprite.width / 2 -
+          (leftMostSprite.x - leftMostSprite.width / 2),
+        rightMostSprite.y +
+          rightMostSprite.height / 2 -
+          (leftMostSprite.y - leftMostSprite.height / 2)
       );
     }
   }
 
+  private choicePencil(i: number, sprite: Pixi.Sprite) {
+    if (this.selectedIndex === i || !this.readyToSelect) {
+      this.readyToSelect = true;
+      return;
+    }
+
+    this.selectedColor = this.colors[i];
+
+    this.pensils[this.selectedIndex].y = 50;
+    sprite.y = 30;
+    this.selectedIndex = i;
+  }
+
   private onDragStart(e: Pixi.FederatedPointerEvent) {
     if (this.palette) {
+      this.startGlobalX = e.globalX - this.x;
       this.drag.start.x = e.globalX - this.x - this.palette.x;
       this.drag.dragging = true;
 
@@ -252,6 +282,9 @@ export default class Palette extends Pixi.Container {
     if (this.palette) {
       if (this.drag.dragging) {
         this.palette.x = e.globalX - this.x - this.drag.start.x;
+        if (Math.abs(this.startGlobalX - (e.globalX - this.x)) >= 10) {
+          this.readyToSelect = false;
+        }
       }
     }
   }

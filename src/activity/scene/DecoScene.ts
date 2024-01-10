@@ -52,7 +52,7 @@ export default class DecoScene extends Pixi.Container {
 
   private runPalette() {
     this.palette = new Palette();
-    this.palette.setPosition(650, 750);
+    this.palette.setPalette(650, 750);
     this.addChild(this.palette);
   }
 
