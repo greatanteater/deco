@@ -125,12 +125,14 @@ export default class Palette extends Pixi.Container {
     );
 
     for (let i = 0; i < this.colors.length; i++) {
-      const sprite = Pixi.Sprite.from(`image/palette/pensil${i + 1}.png`); // 'path_to_your_image'는 실제 이미지 파일의 경로입니다.
-      sprite.x = i * this.pensilWidth;
+      const sprite = Pixi.Sprite.from(`image/palette/pensil${i + 1}.png`);
       sprite.anchor.set(0.5);
+      sprite.x = i * this.pensilWidth;
+      sprite.y = 50;
       sprite.interactive = true;
       sprite.on("pointertap", () => {
         this.selectedColor = this.colors[i];
+        console.log("개빡친다" + i);
       });
 
       const integerPart = Math.floor(this.colors.length / 3);
