@@ -321,7 +321,6 @@ export default class Drawing extends Pixi.Container {
       const maskLoad = await Pixi.Assets.load(
         this.imageAssets.face[charNumber].path
       );
-      console.log('개빡 ' + maskLoad);
       const sprite = Pixi.Sprite.from(maskLoad);
       sprite.anchor.set(0.5);
       sprite.position.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
