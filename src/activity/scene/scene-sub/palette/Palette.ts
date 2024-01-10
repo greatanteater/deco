@@ -38,7 +38,6 @@ export default class Palette extends Pixi.Container {
   }
 
   private async initialize() {
-    this.selectedIndex = 100;
     this.setColor();
   }
 
@@ -217,22 +216,22 @@ export default class Palette extends Pixi.Container {
 
   private choiceEraser() {
     if (this.eraser) {
-      if (this.selectedIndex < this.pencils.length) {
-        this.pencils[this.selectedIndex].y = 50;
-      }
       if (this.isUp) {
         this.eraser.y += 20;
+        this.pencils[this.selectedIndex].y = 30;
       } else {
         this.eraser.y -= 20;
+        this.pencils[this.selectedIndex].y = 50;
       }
       this.isUp = !this.isUp;
-      this.selectedIndex = 100;
     }
   }
 
   private choicePencil(i: number, sprite: Pixi.Sprite) {
     if (this.selectedIndex === i || !this.readyToSelect) {
-      return;
+      if (!this.isUp) {
+        return;
+      }
     }
 
     if (this.isUp) {
@@ -240,10 +239,7 @@ export default class Palette extends Pixi.Container {
     }
     this.selectedColor = this.colors[i];
 
-    if (this.selectedIndex < this.pencils.length) {
-      this.pencils[this.selectedIndex].y = 50;
-    }
-
+    this.pencils[this.selectedIndex].y = 50;
     sprite.y = 30;
     this.selectedIndex = i;
   }
