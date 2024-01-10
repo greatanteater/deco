@@ -153,6 +153,7 @@ export default class Palette extends Pixi.Container {
       pencil.x = i * this.pencilWidth;
       pencil.y = 50;
       pencil.interactive = true;
+      pencil.on("pointerdown", () => (this.readyToSelect = true));
       pencil.on("pointertap", () => {
         this.choicePencil(i, pencil);
       });
@@ -231,7 +232,6 @@ export default class Palette extends Pixi.Container {
 
   private choicePencil(i: number, sprite: Pixi.Sprite) {
     if (this.selectedIndex === i || !this.readyToSelect) {
-      this.readyToSelect = true;
       return;
     }
 
