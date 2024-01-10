@@ -101,12 +101,6 @@ export default class Palette extends Pixi.Container {
 
     this.palette.mask = mask;
     this.palette.interactive = true;
-    this.palette.hitArea = new Pixi.Rectangle(
-      0,
-      0,
-      1300,
-      780
-    );
     this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
       this.onDragStart(e)
     );
@@ -119,6 +113,7 @@ export default class Palette extends Pixi.Container {
     for (let i = 0; i < this.colors.length; i++) {
       const sprite = Pixi.Sprite.from(`image/palette/pensil${i + 1}.png`); // 'path_to_your_image'는 실제 이미지 파일의 경로입니다.
       sprite.x = i * this.pensilWidth;
+      sprite.anchor.set(0.5);
       sprite.interactive = true;
       sprite.on("pointertap", () => {
         this.selectedColor = this.colors[i];
@@ -132,8 +127,39 @@ export default class Palette extends Pixi.Container {
       } else {
         this.colorRectGroups.rightGroup.push(sprite);
       }
-
       this.palette.addChild(sprite);
+
+      if (i == this.colors.length - 1) {
+        this.palette.hitArea = new Pixi.Rectangle(0, 0, i * this.pensilWidth, maskHeight);
+      }
+    }
+  }
+
+  private setHitArea() {
+    const allSprites = [
+      ...this.colorRectGroups.leftGroup,
+      ...this.colorRectGroups.middleGroup,
+      ...this.colorRectGroups.rightGroup,
+    ];
+    const leftMostSprite = allSprites.reduce(
+      (leftMost, sprite) => (sprite.x - sprite.width / 2 < leftMost.x - leftMost.width / 2 ? sprite : leftMost),
+      allSprites[0]
+    );
+    const rightMostSprite = allSprites.reduce(
+      (rightMost, sprite) =>
+        sprite.x + sprite.width / 2 > rightMost.x + rightMost.width / 2
+          ? sprite
+          : rightMost,
+      allSprites[0]
+    );
+
+    if (this.palette) {
+      this.palette.hitArea = new Pixi.Rectangle(
+        leftMostSprite.x - leftMostSprite.width / 2,
+        leftMostSprite.y - leftMostSprite.height / 2,
+        (rightMostSprite.x + rightMostSprite.width / 2) - (leftMostSprite.x - leftMostSprite.width / 2),
+        (rightMostSprite.y + rightMostSprite.height / 2) - (leftMostSprite.y - leftMostSprite.height / 2)
+      );
     }
   }
 
@@ -198,30 +224,7 @@ export default class Palette extends Pixi.Container {
           sprite.x = middleGroupLastX + this.pensilWidth * (index + 1);
         });
       }
-
-      const allSprites = [
-        ...this.colorRectGroups.leftGroup,
-        ...this.colorRectGroups.middleGroup,
-        ...this.colorRectGroups.rightGroup,
-      ];
-      const leftMostSprite = allSprites.reduce(
-        (leftMost, sprite) => (sprite.x < leftMost.x ? sprite : leftMost),
-        allSprites[0]
-      );
-      const rightMostSprite = allSprites.reduce(
-        (rightMost, sprite) =>
-          sprite.x + sprite.width > rightMost.x + rightMost.width
-            ? sprite
-            : rightMost,
-        allSprites[0]
-      );
-
-      this.palette.hitArea = new Pixi.Rectangle(
-        leftMostSprite.x,
-        leftMostSprite.y,
-        rightMostSprite.x + rightMostSprite.width - leftMostSprite.x,
-        rightMostSprite.y + rightMostSprite.height - leftMostSprite.y
-      );
+      this.setHitArea();
     }
   }
 
