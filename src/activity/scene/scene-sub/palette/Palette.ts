@@ -74,111 +74,109 @@ export default class Palette extends Pixi.Container {
     this.selectedColor = 0xffffff;
   }
 
-  public setPalette(x: number, y: number) {
-    this.background = Pixi.Sprite.from("image/palette/background.png");
+  public async setPalette(x: number, y: number) {
+    const backgroundLoad = await Pixi.Assets.load(
+      "image/palette/background.png"
+    );
+    this.background = Pixi.Sprite.from(backgroundLoad);
     this.background.anchor.set(0.5);
     this.background.x = 650;
     this.background.y = 730;
+    this.addChild(this.background);
 
-    this.background.texture.baseTexture.on("loaded", () => {
-      if (this.background) {
-        this.addChild(this.background);
+    this.palette = new Pixi.Container();
+    this.pencilWidth = 100;
+    const totalWidth = this.colors.length * this.pencilWidth;
+    this.palette.pivot.x = totalWidth / 2;
+    this.palette.pivot.y = 50;
 
-        this.palette = new Pixi.Container();
-        this.pencilWidth = 100;
-        const totalWidth = this.colors.length * this.pencilWidth;
-        this.palette.pivot.x = totalWidth / 2;
-        this.palette.pivot.y = 50;
+    this.palette.x = x;
+    this.palette.y = y; // pivot 값을 고려해 위치를 설정합니다.
+    this.addChild(this.palette);
 
-        this.palette.x = x;
-        this.palette.y = y; // pivot 값을 고려해 위치를 설정합니다.
-        this.addChild(this.palette);
+    const mask = new Pixi.Graphics();
+    const maskWidth = 380;
+    const maskHeight = 240;
+    const maskCenterX = 650 - maskWidth / 2;
+    const maskCenterY = this.palette.y - this.palette.pivot.y;
+    mask.beginFill(0xffffff);
+    mask.drawRoundedRect(
+      maskCenterX + 35,
+      maskCenterY - 10,
+      maskWidth,
+      maskHeight / 2,
+      30
+    );
+    mask.endFill();
+    this.addChild(mask);
+    this.palette.mask = mask;
 
-        const mask = new Pixi.Graphics();
-        const maskWidth = 380;
-        const maskHeight = 240;
-        const maskCenterX = 650 - maskWidth / 2;
-        const maskCenterY = this.palette.y - this.palette.pivot.y;
-        mask.beginFill(0xffffff);
-        mask.drawRoundedRect(
-          maskCenterX + 35,
-          maskCenterY - 10,
-          maskWidth,
-          maskHeight / 2,
-          30
-        );
-        mask.endFill();
-        this.addChild(mask);
-        this.palette.mask = mask;
+    // const showMask = new Pixi.Graphics();
+    // showMask.beginFill(0xffffff, 0.5);
+    // showMask.drawRoundedRect(
+    //   maskCenterX + 35,
+    //   maskCenterY - 10,
+    //   maskWidth,
+    //   maskHeight / 2,
+    //   30
+    // );
+    // showMask.endFill();
+    // this.addChild(showMask);
 
-        // const showMask = new Pixi.Graphics();
-        // showMask.beginFill(0xffffff, 0.5);
-        // showMask.drawRoundedRect(
-        //   maskCenterX + 35,
-        //   maskCenterY - 10,
-        //   maskWidth,
-        //   maskHeight / 2,
-        //   30
-        // );
-        // showMask.endFill();
-        // this.addChild(showMask);
+    this.palette.interactive = true;
+    this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
+      this.onDragStart(e)
+    );
+    this.palette.on("pointerup", () => this.onDragEnd());
+    this.palette.on("pointerupoutside", () => this.onDragEnd());
+    this.palette.on("pointermove", (e: Pixi.FederatedPointerEvent) =>
+      this.onDragMove(e)
+    );
 
-        this.palette.interactive = true;
-        this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
-          this.onDragStart(e)
-        );
-        this.palette.on("pointerup", () => this.onDragEnd());
-        this.palette.on("pointerupoutside", () => this.onDragEnd());
-        this.palette.on("pointermove", (e: Pixi.FederatedPointerEvent) =>
-          this.onDragMove(e)
-        );
+    this.eraser = Pixi.Sprite.from("image/palette/eraser.png");
+    this.eraser.anchor.set(0.5);
+    this.eraser.width = 76;
+    this.eraser.height = 76;
+    this.eraser.x =
+      x -
+      this.background.width / 2 +
+      this.eraser.width / 2 +
+      this.background.width / 70;
+    this.eraser.y = y;
+    this.eraser.interactive = true;
+    this.eraser.on("pointertap", this.choiceEraser, this);
+    this.addChild(this.eraser);
 
-        this.eraser = Pixi.Sprite.from("image/palette/eraser.png");
-        this.eraser.anchor.set(0.5);
-        this.eraser.width = 76;
-        this.eraser.height = 76;
-        this.eraser.x =
-          x -
-          this.background.width / 2 +
-          this.eraser.width / 2 +
-          this.background.width / 70;
-        this.eraser.y = y;
-        this.eraser.interactive = true;
-        this.eraser.on("pointertap", this.choiceEraser, this);
-        this.addChild(this.eraser);
+    for (let i = 0; i < this.colors.length; i++) {
+      const pencil = Pixi.Sprite.from(`image/palette/pencil${i + 1}.png`);
+      pencil.anchor.set(0.5);
+      pencil.x = i * this.pencilWidth;
+      pencil.y = 50;
+      pencil.interactive = true;
+      pencil.on("pointertap", () => {
+        this.choicePencil(i, pencil);
+      });
 
-        for (let i = 0; i < this.colors.length; i++) {
-          const pencil = Pixi.Sprite.from(`image/palette/pencil${i + 1}.png`);
-          pencil.anchor.set(0.5);
-          pencil.x = i * this.pencilWidth;
-          pencil.y = 50;
-          pencil.interactive = true;
-          pencil.on("pointertap", () => {
-            this.choicePencil(i, pencil);
-          });
-
-          const integerPart = Math.floor(this.colors.length / 3);
-          if (i < integerPart) {
-            this.colorRectGroups.leftGroup.push(pencil);
-          } else if (i < integerPart * 2) {
-            this.colorRectGroups.middleGroup.push(pencil);
-          } else {
-            this.colorRectGroups.rightGroup.push(pencil);
-          }
-          this.palette.addChild(pencil);
-          this.pencils.push(pencil);
-
-          if (i == this.colors.length - 1) {
-            this.palette.hitArea = new Pixi.Rectangle(
-              0,
-              0,
-              i * this.pencilWidth,
-              maskHeight
-            );
-          }
-        }
+      const integerPart = Math.floor(this.colors.length / 3);
+      if (i < integerPart) {
+        this.colorRectGroups.leftGroup.push(pencil);
+      } else if (i < integerPart * 2) {
+        this.colorRectGroups.middleGroup.push(pencil);
+      } else {
+        this.colorRectGroups.rightGroup.push(pencil);
       }
-    });
+      this.palette.addChild(pencil);
+      this.pencils.push(pencil);
+
+      if (i == this.colors.length - 1) {
+        this.palette.hitArea = new Pixi.Rectangle(
+          0,
+          0,
+          i * this.pencilWidth,
+          maskHeight
+        );
+      }
+    }
   }
 
   private setHitArea() {
@@ -329,5 +327,39 @@ export default class Palette extends Pixi.Container {
         }
       }
     }
+  }
+
+  private destroyPalette() {
+    if (this.background) {
+      this.background.texture.baseTexture.removeAllListeners();
+      this.background.destroy();
+      Pixi.Assets.unload("image/palette/background.png");
+    }
+
+    if (this.palette) {
+      this.palette.off("pointerdown");
+      this.palette.off("pointerup");
+      this.palette.off("pointerupoutside");
+      this.palette.off("pointermove");
+      this.pencils.forEach((pencil) => {
+        pencil.off("pointertap");
+        pencil.destroy();
+      });
+      this.palette.destroy({
+        children: true,
+        texture: true,
+        baseTexture: true,
+      });
+    }
+
+    if (this.eraser) {
+      this.eraser.off("pointertap");
+      this.eraser.destroy();
+    }
+  }
+
+  public destroy() {
+    this.destroyPalette();
+    super.destroy();
   }
 }

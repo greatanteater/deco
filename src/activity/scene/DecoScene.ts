@@ -98,23 +98,32 @@ export default class DecoScene extends Pixi.Container {
 
   private destroyDrawing() {
     if (this.drawing) {
-      this.drawing.destroy();
       this.removeChild(this.drawing);
+      this.drawing.destroy();
       this.drawing = null;
     }
   }
 
   private destroySticker() {
     if (this.sticker) {
-      this.sticker.destroy();
       this.removeChild(this.sticker);
+      this.sticker.destroy();
       this.sticker = null;
+    }
+  }
+
+  private destroyPalette() {
+    if (this.palette) {
+      this.removeChild(this.palette);
+      this.palette.destroy();
+      this.palette = null;
     }
   }
 
   public destroy() {
     this.destroyDrawing();
     this.destroySticker();
+    this.destroyPalette();
     this.destroyBackground();
     this.destroyButton();
     super.destroy();
