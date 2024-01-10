@@ -71,6 +71,7 @@ export default class Palette extends Pixi.Container {
       rightGroup: [],
     };
     this.selectedColor = 0xffffff;
+    this.selectedIndex = 10;
   }
 
   public async setPalette(x: number, y: number) {
@@ -150,7 +151,11 @@ export default class Palette extends Pixi.Container {
       const pencil = Pixi.Sprite.from(`image/palette/pencil${i + 1}.png`);
       pencil.anchor.set(0.5);
       pencil.x = i * this.pencilWidth;
-      pencil.y = 50;
+      if (this.selectedIndex === i) {
+        pencil.y = 30;
+      } else {
+        pencil.y = 50;
+      }
       pencil.interactive = true;
       pencil.on("pointerdown", () => (this.readyToSelect = true));
       pencil.on("pointertap", () => {
@@ -216,13 +221,20 @@ export default class Palette extends Pixi.Container {
 
   private choiceEraser() {
     if (this.eraser) {
+      let eraserTargetY = this.eraser.y;
+      let pencilTargetY = this.pencils[this.selectedIndex].y;
+  
       if (this.isUp) {
-        this.eraser.y += 20;
-        this.pencils[this.selectedIndex].y = 30;
+        eraserTargetY += 20;
+        pencilTargetY = 30;
       } else {
-        this.eraser.y -= 20;
-        this.pencils[this.selectedIndex].y = 50;
+        eraserTargetY -= 20;
+        pencilTargetY = 50;
       }
+  
+      gsap.to(this.eraser, { y: eraserTargetY, duration: 0.5 });
+      gsap.to(this.pencils[this.selectedIndex], { y: pencilTargetY, duration: 0.5 });
+  
       this.isUp = !this.isUp;
     }
   }
@@ -321,6 +333,7 @@ export default class Palette extends Pixi.Container {
         if (Math.abs(this.startGlobalX - (e.globalX - this.x)) >= 10) {
           this.readyToSelect = false;
         }
+        console.log("개빡친다 " + this.palette.x);
       }
     }
   }
