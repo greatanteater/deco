@@ -23,12 +23,13 @@ export default class Palette extends Pixi.Container {
   };
 
   private background: Pixi.Sprite | null = null;
-  private pensils: Pixi.Sprite[] = [];
+  private pencils: Pixi.Sprite[] = [];
   private eraser: Pixi.Sprite | null = null;
-  private pensilWidth = 50;
+  private pencilWidth = 50;
   private readyToSelect = true;
   private startGlobalX = 0;
   private selectedIndex = 0;
+  private isUp: boolean = false;
 
   constructor() {
     super();
@@ -37,6 +38,7 @@ export default class Palette extends Pixi.Container {
   }
 
   private async initialize() {
+    this.selectedIndex = 100;
     this.setColor();
   }
 
@@ -83,8 +85,8 @@ export default class Palette extends Pixi.Container {
         this.addChild(this.background);
 
         this.palette = new Pixi.Container();
-        this.pensilWidth = 100;
-        const totalWidth = this.colors.length * this.pensilWidth;
+        this.pencilWidth = 100;
+        const totalWidth = this.colors.length * this.pencilWidth;
         this.palette.pivot.x = totalWidth / 2;
         this.palette.pivot.y = 50;
 
@@ -141,12 +143,14 @@ export default class Palette extends Pixi.Container {
           this.eraser.width / 2 +
           this.background.width / 70;
         this.eraser.y = y;
+        this.eraser.interactive = true;
+        this.eraser.on("pointertap", this.choiceEraser, this);
         this.addChild(this.eraser);
 
         for (let i = 0; i < this.colors.length; i++) {
-          const pencil = Pixi.Sprite.from(`image/palette/pensil${i + 1}.png`);
+          const pencil = Pixi.Sprite.from(`image/palette/pencil${i + 1}.png`);
           pencil.anchor.set(0.5);
-          pencil.x = i * this.pensilWidth;
+          pencil.x = i * this.pencilWidth;
           pencil.y = 50;
           pencil.interactive = true;
           pencil.on("pointertap", () => {
@@ -162,13 +166,13 @@ export default class Palette extends Pixi.Container {
             this.colorRectGroups.rightGroup.push(pencil);
           }
           this.palette.addChild(pencil);
-          this.pensils.push(pencil);
+          this.pencils.push(pencil);
 
           if (i == this.colors.length - 1) {
             this.palette.hitArea = new Pixi.Rectangle(
               0,
               0,
-              i * this.pensilWidth,
+              i * this.pencilWidth,
               maskHeight
             );
           }
@@ -212,15 +216,36 @@ export default class Palette extends Pixi.Container {
     }
   }
 
+  private choiceEraser() {
+    if (this.eraser) {
+      if (this.selectedIndex < this.pencils.length) {
+        this.pencils[this.selectedIndex].y = 50;
+      }
+      if (this.isUp) {
+        this.eraser.y += 20;
+      } else {
+        this.eraser.y -= 20;
+      }
+      this.isUp = !this.isUp;
+      this.selectedIndex = 100;
+    }
+  }
+
   private choicePencil(i: number, sprite: Pixi.Sprite) {
     if (this.selectedIndex === i || !this.readyToSelect) {
       this.readyToSelect = true;
       return;
     }
 
+    if (this.isUp) {
+      this.choiceEraser();
+    }
     this.selectedColor = this.colors[i];
 
-    this.pensils[this.selectedIndex].y = 50;
+    if (this.selectedIndex < this.pencils.length) {
+      this.pencils[this.selectedIndex].y = 50;
+    }
+
     sprite.y = 30;
     this.selectedIndex = i;
   }
@@ -241,7 +266,7 @@ export default class Palette extends Pixi.Container {
           .slice()
           .reverse()
           .forEach((sprite, index) => {
-            sprite.x = leftGroupFirstX - this.pensilWidth * (index + 1);
+            sprite.x = leftGroupFirstX - this.pencilWidth * (index + 1);
           });
 
         const leftGroupLastX =
@@ -249,7 +274,7 @@ export default class Palette extends Pixi.Container {
             this.colorRectGroups.leftGroup.length - 1
           ].x;
         this.colorRectGroups.middleGroup.slice().forEach((sprite, index) => {
-          sprite.x = leftGroupLastX + this.pensilWidth * (index + 1);
+          sprite.x = leftGroupLastX + this.pencilWidth * (index + 1);
         });
       }
       if (this.colorRectGroups.rightGroup.includes(clickedSprite)) {
@@ -258,7 +283,7 @@ export default class Palette extends Pixi.Container {
           .slice()
           .reverse()
           .forEach((sprite, index) => {
-            sprite.x = rightGroupFirstX - this.pensilWidth * (index + 1);
+            sprite.x = rightGroupFirstX - this.pencilWidth * (index + 1);
           });
 
         const rightGroupLastX =
@@ -266,7 +291,7 @@ export default class Palette extends Pixi.Container {
             this.colorRectGroups.rightGroup.length - 1
           ].x;
         this.colorRectGroups.leftGroup.slice().forEach((sprite, index) => {
-          sprite.x = rightGroupLastX + this.pensilWidth * (index + 1);
+          sprite.x = rightGroupLastX + this.pencilWidth * (index + 1);
         });
       }
       if (this.colorRectGroups.middleGroup.includes(clickedSprite)) {
@@ -280,11 +305,11 @@ export default class Palette extends Pixi.Container {
           .slice()
           .reverse()
           .forEach((sprite, index) => {
-            sprite.x = middleGroupFirstX - this.pensilWidth * (index + 1);
+            sprite.x = middleGroupFirstX - this.pencilWidth * (index + 1);
           });
 
         this.colorRectGroups.rightGroup.slice().forEach((sprite, index) => {
-          sprite.x = middleGroupLastX + this.pensilWidth * (index + 1);
+          sprite.x = middleGroupLastX + this.pencilWidth * (index + 1);
         });
       }
       this.setHitArea();
