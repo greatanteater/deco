@@ -86,20 +86,34 @@ export default class Palette extends Pixi.Container {
     this.addChild(this.palette);
 
     const mask = new Pixi.Graphics();
-    const maskWidth = 300;
-    const maskHeight = 100;
+    const maskWidth = 380;
+    const maskHeight = 240;
+    const maskCenterX = 650 - maskWidth / 2;
+    const maskCenterY = this.palette.y - this.palette.pivot.y;
     mask.beginFill(0xffffff);
     mask.drawRoundedRect(
-      650 - maskWidth / 2,
-      this.palette.y - this.palette.pivot.y,
+      maskCenterX + 35,
+      maskCenterY - 10,
       maskWidth,
       maskHeight / 2,
       30
     );
     mask.endFill();
     this.addChild(mask);
-
     this.palette.mask = mask;
+
+    // const showMask = new Pixi.Graphics();
+    // showMask.beginFill(0xffffff, 0.5);
+    // showMask.drawRoundedRect(
+    //   maskCenterX + 35,
+    //   maskCenterY - 10,
+    //   maskWidth,
+    //   maskHeight / 2,
+    //   30
+    // );
+    // showMask.endFill();
+    // this.addChild(showMask);
+
     this.palette.interactive = true;
     this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
       this.onDragStart(e)
