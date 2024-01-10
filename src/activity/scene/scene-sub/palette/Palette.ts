@@ -21,8 +21,11 @@ export default class Palette extends Pixi.Container {
     end: { x: 0, y: 0 },
     dragging: false,
   };
-  private pensilWidth = 50;
+
+  private background: Pixi.Sprite | null = null;
   private pensils: Pixi.Sprite[] = [];
+  private eraser: Pixi.Sprite | null = null;
+  private pensilWidth = 50;
   private readyToSelect = true;
   private startGlobalX = 0;
   private selectedIndex = 0;
@@ -35,7 +38,6 @@ export default class Palette extends Pixi.Container {
 
   private async initialize() {
     this.setColor();
-    this.setSprite();
   }
 
   private setColor() {
@@ -70,94 +72,109 @@ export default class Palette extends Pixi.Container {
     this.selectedColor = 0xffffff;
   }
 
-  private setSprite() {
-    const sprite = Pixi.Sprite.from("image/palette/palette.png");
-    sprite.anchor.set(0.5);
-    sprite.x = 650;
-    sprite.y = 730;
-    this.addChild(sprite);
-  }
-
   public setPalette(x: number, y: number) {
-    this.palette = new Pixi.Container();
-    this.pensilWidth = 100;
-    const totalWidth = this.colors.length * this.pensilWidth;
-    this.palette.pivot.x = totalWidth / 2;
-    this.palette.pivot.y = 50;
+    this.background = Pixi.Sprite.from("image/palette/background.png");
+    this.background.anchor.set(0.5);
+    this.background.x = 650;
+    this.background.y = 730;
 
-    this.palette.x = x;
-    this.palette.y = y; // pivot 값을 고려해 위치를 설정합니다.
-    this.addChild(this.palette);
+    this.background.texture.baseTexture.on("loaded", () => {
+      if (this.background) {
+        this.addChild(this.background);
 
-    const mask = new Pixi.Graphics();
-    const maskWidth = 380;
-    const maskHeight = 240;
-    const maskCenterX = 650 - maskWidth / 2;
-    const maskCenterY = this.palette.y - this.palette.pivot.y;
-    mask.beginFill(0xffffff);
-    mask.drawRoundedRect(
-      maskCenterX + 35,
-      maskCenterY - 10,
-      maskWidth,
-      maskHeight / 2,
-      30
-    );
-    mask.endFill();
-    this.addChild(mask);
-    this.palette.mask = mask;
+        this.palette = new Pixi.Container();
+        this.pensilWidth = 100;
+        const totalWidth = this.colors.length * this.pensilWidth;
+        this.palette.pivot.x = totalWidth / 2;
+        this.palette.pivot.y = 50;
 
-    // const showMask = new Pixi.Graphics();
-    // showMask.beginFill(0xffffff, 0.5);
-    // showMask.drawRoundedRect(
-    //   maskCenterX + 35,
-    //   maskCenterY - 10,
-    //   maskWidth,
-    //   maskHeight / 2,
-    //   30
-    // );
-    // showMask.endFill();
-    // this.addChild(showMask);
+        this.palette.x = x;
+        this.palette.y = y; // pivot 값을 고려해 위치를 설정합니다.
+        this.addChild(this.palette);
 
-    this.palette.interactive = true;
-    this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
-      this.onDragStart(e)
-    );
-    this.palette.on("pointerup", () => this.onDragEnd());
-    this.palette.on("pointerupoutside", () => this.onDragEnd());
-    this.palette.on("pointermove", (e: Pixi.FederatedPointerEvent) =>
-      this.onDragMove(e)
-    );
-
-    for (let i = 0; i < this.colors.length; i++) {
-      const sprite = Pixi.Sprite.from(`image/palette/pensil${i + 1}.png`);
-      sprite.anchor.set(0.5);
-      sprite.x = i * this.pensilWidth;
-      sprite.y = 50;
-      sprite.interactive = true;
-      sprite.on("pointertap", () => {
-        this.choicePencil(i, sprite);
-      });
-
-      const integerPart = Math.floor(this.colors.length / 3);
-      if (i < integerPart) {
-        this.colorRectGroups.leftGroup.push(sprite);
-      } else if (i < integerPart * 2) {
-        this.colorRectGroups.middleGroup.push(sprite);
-      } else {
-        this.colorRectGroups.rightGroup.push(sprite);
-      }
-      this.palette.addChild(sprite);
-      this.pensils.push(sprite);
-
-      if (i == this.colors.length - 1) {
-        this.palette.hitArea = new Pixi.Rectangle(
-          0,
-          0,
-          i * this.pensilWidth,
-          maskHeight
+        const mask = new Pixi.Graphics();
+        const maskWidth = 380;
+        const maskHeight = 240;
+        const maskCenterX = 650 - maskWidth / 2;
+        const maskCenterY = this.palette.y - this.palette.pivot.y;
+        mask.beginFill(0xffffff);
+        mask.drawRoundedRect(
+          maskCenterX + 35,
+          maskCenterY - 10,
+          maskWidth,
+          maskHeight / 2,
+          30
         );
+        mask.endFill();
+        this.addChild(mask);
+        this.palette.mask = mask;
+
+        // const showMask = new Pixi.Graphics();
+        // showMask.beginFill(0xffffff, 0.5);
+        // showMask.drawRoundedRect(
+        //   maskCenterX + 35,
+        //   maskCenterY - 10,
+        //   maskWidth,
+        //   maskHeight / 2,
+        //   30
+        // );
+        // showMask.endFill();
+        // this.addChild(showMask);
+
+        this.palette.interactive = true;
+        this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
+          this.onDragStart(e)
+        );
+        this.palette.on("pointerup", () => this.onDragEnd());
+        this.palette.on("pointerupoutside", () => this.onDragEnd());
+        this.palette.on("pointermove", (e: Pixi.FederatedPointerEvent) =>
+          this.onDragMove(e)
+        );
+
+        this.eraser = Pixi.Sprite.from("image/palette/eraser.png");
+        this.eraser.anchor.set(0.5);
+        this.eraser.width = 76;
+        this.eraser.height = 76;
+        this.eraser.x =
+          x -
+          this.background.width / 2 +
+          this.eraser.width / 2 +
+          this.background.width / 70;
+        this.eraser.y = y;
+        this.addChild(this.eraser);
+
+        for (let i = 0; i < this.colors.length; i++) {
+          const pencil = Pixi.Sprite.from(`image/palette/pensil${i + 1}.png`);
+          pencil.anchor.set(0.5);
+          pencil.x = i * this.pensilWidth;
+          pencil.y = 50;
+          pencil.interactive = true;
+          pencil.on("pointertap", () => {
+            this.choicePencil(i, pencil);
+          });
+
+          const integerPart = Math.floor(this.colors.length / 3);
+          if (i < integerPart) {
+            this.colorRectGroups.leftGroup.push(pencil);
+          } else if (i < integerPart * 2) {
+            this.colorRectGroups.middleGroup.push(pencil);
+          } else {
+            this.colorRectGroups.rightGroup.push(pencil);
+          }
+          this.palette.addChild(pencil);
+          this.pensils.push(pencil);
+
+          if (i == this.colors.length - 1) {
+            this.palette.hitArea = new Pixi.Rectangle(
+              0,
+              0,
+              i * this.pensilWidth,
+              maskHeight
+            );
+          }
+        }
       }
-    }
+    });
   }
 
   private setHitArea() {
