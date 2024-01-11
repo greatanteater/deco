@@ -418,7 +418,7 @@ export default class Drawing extends Pixi.Container {
       this.prevX = adjustedLocalPoint.x;
       this.prevY = adjustedLocalPoint.y;
     }
-    
+
     if (board) {
       console.log(board);
       console.log(sprite);
@@ -430,8 +430,9 @@ export default class Drawing extends Pixi.Container {
         join: Pixi.LINE_JOIN.ROUND,
         scaleMode: LINE_SCALE_MODE.NONE,
       });
-      // board.beginFill(0x000000);
-      board.drawCircle(this.prevX, this.prevY, 0.5);
+      // board.drawCircle(this.prevX, this.prevY, 0.5);
+      board.moveTo(this.prevX, this.prevY);
+      board.lineTo(this.prevX + 0.01, this.prevY + 0.01);
       board.endFill();
     }
   }
