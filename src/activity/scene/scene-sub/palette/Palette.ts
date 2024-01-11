@@ -47,26 +47,26 @@ export default class Palette extends Pixi.Container {
   private setColor() {
     this.colors = [
       0xffffff, // 지우개
-      0xff0000, // 빨강
-      0xffff00, // 노랑
-      0x00ff00, // 녹색
-      0x00ffff, // 청록
-      0x0000ff, // 파랑
-      0xff00ff, // 자홍
-      0x000000, // 검정
-      0xffffff, // 흰색
-      0x800000, // 어두운 빨강
-      0x808000, // 어두운 노랑
-      0x008000, // 어두운 녹색
-      0x008080, // 어두운 청록
-      0x000080, // 어두운 파랑
-      0x800080, // 어두운 자홍
-      0xc0c0c0, // 실버
-      0x808080, // 회색
-      0x99ccff, // 하늘색
-      0xff99cc, // 분홍색
-      0xcc99ff, // 연보라색
-      0x99ffcc, // 연두색
+      0x00A2E8, // 1
+      0xED1C24, // 2
+      0x22B14C, // 3
+      0xFF7F27, // 4
+      0xFFC90E, // 5
+      0xFFAEC9, // 6
+      0x7092BE, // 7
+      0xA349A4, // 8
+      0xB97A57, // 9
+      0x423899, // 10
+      0xEA3680, // 11
+      0x000000, // 12
+      0x67C976, // 13
+      0x321B40, // 14
+      0xB5E61D, // 15
+      0xE6D03F, // 16
+      0x0603E6, // 17
+      0xE6526D, // 18
+      0x1FE6DD, // 19
+      0xE6B692, // 20
     ];
     this.colorRects = [];
     this.colorRectGroups = {
@@ -74,7 +74,7 @@ export default class Palette extends Pixi.Container {
       middleGroup: [],
       rightGroup: [],
     };
-    this.selectedIndex = 10;
+    this.selectedIndex = 12;
   }
 
   public async setPalette() {
@@ -314,7 +314,7 @@ export default class Palette extends Pixi.Container {
     } else {
       if (this.eraser) {
         let eraserTargetY = this.eraser.y;
-        eraserTargetY = this.paletteY + 20;
+        eraserTargetY = this.paletteY;
         this.isAnimation = true;
         gsap.to(this.eraser, {
           y: eraserTargetY,

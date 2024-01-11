@@ -418,19 +418,19 @@ export default class Drawing extends Pixi.Container {
       this.prevX = adjustedLocalPoint.x;
       this.prevY = adjustedLocalPoint.y;
     }
-
+    
     if (board) {
       console.log(board);
       console.log(sprite);
       console.log(this.drawTarget);
       board.lineStyle({
         width: 10,
-        color: 0x000000,
+        color: this.scene.palette?.getColor(),
         cap: Pixi.LINE_CAP.ROUND,
         join: Pixi.LINE_JOIN.ROUND,
         scaleMode: LINE_SCALE_MODE.NONE,
       });
-      board.beginFill(0x000000);
+      // board.beginFill(0x000000);
       board.drawCircle(this.prevX, this.prevY, 0.5);
       board.endFill();
     }
@@ -450,7 +450,7 @@ export default class Drawing extends Pixi.Container {
       if (board) {
         board.lineStyle({
           width: 10,
-          color: 0x000000,
+          color: this.scene.palette?.getColor(),
           cap: Pixi.LINE_CAP.ROUND,
           join: Pixi.LINE_JOIN.ROUND,
           scaleMode: LINE_SCALE_MODE.NONE,

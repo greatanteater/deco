@@ -15,7 +15,7 @@ export default class DecoScene extends Pixi.Container {
   public backgroundSprite: Pixi.Sprite | null = null;
   private backButtonSprite: Pixi.Sprite | null = null;
   private drawing: Drawing | null = null;
-  private palette: Palette | null = null;
+  public palette: Palette | null = null;
   private sticker: Sticker | null = null;
 
   constructor() {
