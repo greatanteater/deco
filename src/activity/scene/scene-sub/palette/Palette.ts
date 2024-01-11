@@ -55,7 +55,7 @@ export default class Palette extends Pixi.Container {
 
   private setColor() {
     this.colors = [
-      0xffffff, // 지우개
+      Infinity, // 지우개
       0x00a2e8, // 1
       0xed1c24, // 2
       0x22b14c, // 3
@@ -469,7 +469,11 @@ export default class Palette extends Pixi.Container {
   }
 
   public getColor() {
-    return this.colors[this.selectedIndex];
+    if (this.colors[this.selectedIndex] === Infinity) {
+      return 0xFFFFFF;
+    } else {
+      return this.colors[this.selectedIndex];
+    }
   }
 
   public async hide() {
