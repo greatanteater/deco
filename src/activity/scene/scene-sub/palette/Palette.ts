@@ -29,7 +29,7 @@ export default class Palette extends Pixi.Container {
   private readyToSelect = true;
   private startGlobalX = 0;
   private selectedIndex = 0;
-  private isUp: boolean = false;
+  private isAnimation = false;
 
   constructor() {
     super();
@@ -147,10 +147,10 @@ export default class Palette extends Pixi.Container {
     this.eraser.on("pointertap", this.choiceEraser, this);
     this.addChild(this.eraser);
 
-    for (let i = 0; i < this.colors.length; i++) {
-      const pencil = Pixi.Sprite.from(`image/palette/pencil${i + 1}.png`);
+    for (let i = 1; i < this.colors.length; i++) {
+      const pencil = Pixi.Sprite.from(`image/palette/pencil${i}.png`);
       pencil.anchor.set(0.5);
-      pencil.x = i * this.pencilWidth;
+      pencil.x = (i - 1) * this.pencilWidth;
       if (this.selectedIndex === i) {
         pencil.y = 30;
       } else {
@@ -158,7 +158,7 @@ export default class Palette extends Pixi.Container {
       }
       pencil.interactive = true;
       pencil.on("pointerdown", () => (this.readyToSelect = true));
-      pencil.on("pointertap", () => {
+      pencil.on("pointerup", () => {
         this.choicePencil(i, pencil);
       });
 
@@ -220,40 +220,88 @@ export default class Palette extends Pixi.Container {
   }
 
   private choiceEraser() {
-    if (this.eraser) {
+    if (this.selectedIndex === 0 || this.isAnimation) {
+      return;
+    }
+    if (this.eraser && this.background) {
       let eraserTargetY = this.eraser.y;
-      let pencilTargetY = this.pencils[this.selectedIndex].y;
-  
-      if (this.isUp) {
-        eraserTargetY += 20;
-        pencilTargetY = 30;
-      } else {
-        eraserTargetY -= 20;
-        pencilTargetY = 50;
-      }
-  
-      gsap.to(this.eraser, { y: eraserTargetY, duration: 0.5 });
-      gsap.to(this.pencils[this.selectedIndex], { y: pencilTargetY, duration: 0.5 });
-  
-      this.isUp = !this.isUp;
+      let pencilTargetY = this.pencils[this.selectedIndex - 1].y;
+      eraserTargetY = this.background.y;
+      pencilTargetY = 50;
+
+      gsap.to(this.eraser, {
+        y: eraserTargetY,
+        duration: 0.2,
+        onStart: () => {
+          this.isAnimation = true;
+        },
+        onComplete: () => {
+          this.isAnimation = false;
+        },
+      });
+      gsap.to(this.pencils[this.selectedIndex - 1], {
+        y: pencilTargetY,
+        duration: 0.2,
+        onStart: () => {
+          this.isAnimation = true;
+        },
+        onComplete: () => {
+          this.isAnimation = false;
+        },
+      });
+      this.selectedIndex = 0;
     }
   }
 
   private choicePencil(i: number, sprite: Pixi.Sprite) {
-    if (this.selectedIndex === i || !this.readyToSelect) {
-      if (!this.isUp) {
-        return;
+    if (this.selectedIndex === i || !this.readyToSelect || this.isAnimation) {
+      return;
+    }
+
+    this.selectedColor = this.colors[i];
+
+    gsap.to(sprite, {
+      y: 30,
+      duration: 0.2,
+      onStart: () => {
+        this.isAnimation = true;
+      },
+      onComplete: () => {
+        this.isAnimation = false;
+      },
+    });
+    if (this.selectedIndex >= 1) {
+      gsap.to(this.pencils[this.selectedIndex - 1], {
+        y: 50,
+        duration: 0.2,
+        onStart: () => {
+          this.isAnimation = true;
+        },
+        onComplete: () => {
+          this.isAnimation = false;
+        },
+      });
+    } else {
+      if (this.eraser && this.background) {
+        let eraserTargetY = this.eraser.y;
+        eraserTargetY = this.background.y + 20;
+        this.isAnimation = true;
+        gsap.to(this.eraser, {
+          y: eraserTargetY,
+          duration: 0.2,
+          onStart: () => {
+            this.isAnimation = true;
+          },
+          onComplete: () => {
+            this.isAnimation = false;
+          },
+        });
       }
     }
 
-    if (this.isUp) {
-      this.choiceEraser();
-    }
-    this.selectedColor = this.colors[i];
-
-    this.pencils[this.selectedIndex].y = 50;
-    sprite.y = 30;
     this.selectedIndex = i;
+
+    // this.choiceEraser();
   }
 
   private onDragStart(e: Pixi.FederatedPointerEvent) {
