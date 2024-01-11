@@ -393,10 +393,13 @@ export default class Drawing extends Pixi.Container {
   protected onPointerDown(e: Pixi.FederatedPointerEvent, target: string) {
     this.down = true;
     this.drawTarget = target;
+    let board = null;
     let sprite = null;
     if (target === "face") {
+      board = this.faces[this.charNumber].graphic;
       sprite = this.faces[this.charNumber].sprite;
     } else if (this.drawTarget === "hair") {
+      board = this.faces[this.charNumber].hairGraphic;
       sprite = this.faces[this.charNumber].hairSprite;
     }
 
@@ -414,6 +417,22 @@ export default class Drawing extends Pixi.Container {
       };
       this.prevX = adjustedLocalPoint.x;
       this.prevY = adjustedLocalPoint.y;
+    }
+
+    if (board) {
+      console.log(board);
+      console.log(sprite);
+      console.log(this.drawTarget);
+      board.lineStyle({
+        width: 10,
+        color: 0x000000,
+        cap: Pixi.LINE_CAP.ROUND,
+        join: Pixi.LINE_JOIN.ROUND,
+        scaleMode: LINE_SCALE_MODE.NONE,
+      });
+      board.beginFill(0x000000);
+      board.drawCircle(this.prevX, this.prevY, 0.5);
+      board.endFill();
     }
   }
 

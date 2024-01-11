@@ -5,9 +5,10 @@ import { OutlineFilter } from "@pixi/filter-outline";
 import { getAssets } from "../../data/Resource";
 
 export default class Palette extends Pixi.Container {
-  private sceneName = "palette";
-  // private imageAssets: { [key: string]: any };
   private palette: Pixi.Container | null = null;
+  private paletteX = 0;
+  private paletteY = 0;
+  private path = ''
   private colors: number[] = []; // 색상을 16진수로 저장합니다.
   private colorRects: Pixi.Graphics[] = []; // 각 색상을 대표하는 Graphics 객체를 저장합니다.
   private colorRectGroups: {
@@ -15,7 +16,6 @@ export default class Palette extends Pixi.Container {
     middleGroup: Pixi.Sprite[];
     rightGroup: Pixi.Sprite[];
   } = { leftGroup: [], middleGroup: [], rightGroup: [] };
-  private selectedColor = 0;
   private drag = {
     start: { x: 0, y: 0 },
     end: { x: 0, y: 0 },
@@ -31,18 +31,22 @@ export default class Palette extends Pixi.Container {
   private selectedIndex = 0;
   private isAnimation = false;
 
-  constructor() {
+  constructor(x: number, y: number, path: string) {
     super();
-    // this.imageAssets = getAssets(this.sceneName).image;
+    this.paletteX = x;
+    this.paletteY = y;
+    this.path = path;
     this.initialize();
   }
 
   private async initialize() {
     this.setColor();
+    this.setPalette();
   }
 
   private setColor() {
     this.colors = [
+      0xffffff, // 지우개
       0xff0000, // 빨강
       0xffff00, // 노랑
       0x00ff00, // 녹색
@@ -70,13 +74,12 @@ export default class Palette extends Pixi.Container {
       middleGroup: [],
       rightGroup: [],
     };
-    this.selectedColor = 0xffffff;
     this.selectedIndex = 10;
   }
 
-  public async setPalette(x: number, y: number) {
+  public async setPalette() {
     const backgroundLoad = await Pixi.Assets.load(
-      "image/palette/background.png"
+      `${this.path}/background.png`
     );
     this.background = Pixi.Sprite.from(backgroundLoad);
     this.background.anchor.set(0.5);
@@ -85,13 +88,13 @@ export default class Palette extends Pixi.Container {
     this.addChild(this.background);
 
     this.palette = new Pixi.Container();
-    this.pencilWidth = 100;
+    this.pencilWidth = 60;
     const totalWidth = this.colors.length * this.pencilWidth;
     this.palette.pivot.x = totalWidth / 2;
     this.palette.pivot.y = 50;
 
-    this.palette.x = x;
-    this.palette.y = y; // pivot 값을 고려해 위치를 설정합니다.
+    this.palette.x = this.paletteX;
+    this.palette.y = this.paletteY; // pivot 값을 고려해 위치를 설정합니다.
     this.addChild(this.palette);
 
     const mask = new Pixi.Graphics();
@@ -138,11 +141,11 @@ export default class Palette extends Pixi.Container {
     this.eraser.width = 76;
     this.eraser.height = 76;
     this.eraser.x =
-      x -
+      this.paletteX -
       this.background.width / 2 +
       this.eraser.width / 2 +
       this.background.width / 70;
-    this.eraser.y = y;
+    this.eraser.y = this.paletteY;
     this.eraser.interactive = true;
     this.eraser.on("pointertap", this.choiceEraser, this);
     this.addChild(this.eraser);
@@ -252,10 +255,10 @@ export default class Palette extends Pixi.Container {
     if (this.selectedIndex === 0 || this.isAnimation) {
       return;
     }
-    if (this.eraser && this.background) {
+    if (this.eraser) {
       let eraserTargetY = this.eraser.y;
       let pencilTargetY = this.pencils[this.selectedIndex - 1].y;
-      eraserTargetY = this.background.y;
+      eraserTargetY = this.paletteY - 20;
       pencilTargetY = 50;
 
       gsap.to(this.eraser, {
@@ -287,8 +290,6 @@ export default class Palette extends Pixi.Container {
       return;
     }
 
-    this.selectedColor = this.colors[i];
-
     gsap.to(sprite, {
       y: 30,
       duration: 0.2,
@@ -311,9 +312,9 @@ export default class Palette extends Pixi.Container {
         },
       });
     } else {
-      if (this.eraser && this.background) {
+      if (this.eraser) {
         let eraserTargetY = this.eraser.y;
-        eraserTargetY = this.background.y + 20;
+        eraserTargetY = this.paletteY + 20;
         this.isAnimation = true;
         gsap.to(this.eraser, {
           y: eraserTargetY,
@@ -452,5 +453,9 @@ export default class Palette extends Pixi.Container {
   public destroy() {
     this.destroyPalette();
     super.destroy();
+  }
+
+  public getColor() {
+    return this.colors[this.selectedIndex];
   }
 }
