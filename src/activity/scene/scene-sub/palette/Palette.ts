@@ -157,10 +157,10 @@ export default class Palette extends Pixi.Container {
         pencil.y = 50;
       }
       pencil.interactive = true;
-      pencil.on("pointerdown", () => (this.readyToSelect = true));
-      pencil.on("pointerup", () => {
-        this.choicePencil(i, pencil);
-      });
+      // pencil.on("pointerdown", () => (this.readyToSelect = true));
+      // pencil.on("pointerup", () => {
+      //   this.choicePencil(i, pencil);
+      // });
 
       const integerPart = Math.floor(this.colors.length / 3);
       if (i < integerPart) {
@@ -182,6 +182,35 @@ export default class Palette extends Pixi.Container {
         );
       }
     }
+    this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) => {
+      if (this.palette) {
+        const target = e.target;
+
+        if (
+          target &&
+          target instanceof Pixi.Sprite &&
+          this.pencils.includes(target) &&
+          target !== this.eraser
+        ) {
+          console.log("선택된 스프라이트:", target);
+          this.readyToSelect = true;
+        }
+      }
+    });
+
+    this.palette.on("pointerup", (e: Pixi.FederatedPointerEvent) => {
+      const target = e.target;
+
+      if (this.palette && target instanceof Pixi.Sprite) {
+        if (
+          this.palette.children.includes(target as Pixi.DisplayObject) &&
+          target !== this.eraser
+        ) {
+          const index = this.pencils.indexOf(target as Pixi.Sprite);
+          this.choicePencil(index + 1, target as Pixi.Sprite);
+        }
+      }
+    });
   }
 
   private setHitArea() {
@@ -381,7 +410,6 @@ export default class Palette extends Pixi.Container {
         if (Math.abs(this.startGlobalX - (e.globalX - this.x)) >= 10) {
           this.readyToSelect = false;
         }
-        console.log("개빡친다 " + this.palette.x);
       }
     }
   }
