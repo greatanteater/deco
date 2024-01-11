@@ -3,12 +3,11 @@ import { gsap } from "gsap";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 import { OutlineFilter } from "@pixi/filter-outline";
 import { getAssets } from "../../data/Resource";
+import { wait } from "../../../util/Util";
 
 export default class Palette extends Pixi.Container {
   private palette: Pixi.Container | null = null;
-  private paletteX = 0;
-  private paletteY = 0;
-  private path = ''
+  private path = "";
   private colors: number[] = []; // 색상을 16진수로 저장합니다.
   private colorRects: Pixi.Graphics[] = []; // 각 색상을 대표하는 Graphics 객체를 저장합니다.
   private colorRectGroups: {
@@ -30,6 +29,16 @@ export default class Palette extends Pixi.Container {
   private startGlobalX = 0;
   private selectedIndex = 0;
   private isAnimation = false;
+  private isPaletteMoving = false;
+
+  private paletteX = 0;
+  private paletteY = 0;
+  private backgroundX = 0;
+  private backgroundY = 0;
+  private eraserX = 0;
+  private eraserY = 0;
+
+  private paletteShow = true;
 
   constructor(x: number, y: number, path: string) {
     super();
@@ -47,26 +56,26 @@ export default class Palette extends Pixi.Container {
   private setColor() {
     this.colors = [
       0xffffff, // 지우개
-      0x00A2E8, // 1
-      0xED1C24, // 2
-      0x22B14C, // 3
-      0xFF7F27, // 4
-      0xFFC90E, // 5
-      0xFFAEC9, // 6
-      0x7092BE, // 7
-      0xA349A4, // 8
-      0xB97A57, // 9
+      0x00a2e8, // 1
+      0xed1c24, // 2
+      0x22b14c, // 3
+      0xff7f27, // 4
+      0xffc90e, // 5
+      0xffaec9, // 6
+      0x7092be, // 7
+      0xa349a4, // 8
+      0xb97a57, // 9
       0x423899, // 10
-      0xEA3680, // 11
+      0xea3680, // 11
       0x000000, // 12
-      0x67C976, // 13
-      0x321B40, // 14
-      0xB5E61D, // 15
-      0xE6D03F, // 16
-      0x0603E6, // 17
-      0xE6526D, // 18
-      0x1FE6DD, // 19
-      0xE6B692, // 20
+      0x67c976, // 13
+      0x321b40, // 14
+      0xb5e61d, // 15
+      0xe6d03f, // 16
+      0x0603e6, // 17
+      0xe6526d, // 18
+      0x1fe6dd, // 19
+      0xe6b692, // 20
     ];
     this.colorRects = [];
     this.colorRectGroups = {
@@ -83,8 +92,10 @@ export default class Palette extends Pixi.Container {
     );
     this.background = Pixi.Sprite.from(backgroundLoad);
     this.background.anchor.set(0.5);
-    this.background.x = 650;
-    this.background.y = 730;
+    this.backgroundX = this.paletteX;
+    this.backgroundY = this.paletteY - 20;
+    this.background.x = this.backgroundX;
+    this.background.y = this.backgroundY;
     this.addChild(this.background);
 
     this.palette = new Pixi.Container();
@@ -140,12 +151,14 @@ export default class Palette extends Pixi.Container {
     this.eraser.anchor.set(0.5);
     this.eraser.width = 76;
     this.eraser.height = 76;
-    this.eraser.x =
+    this.eraserX =
       this.paletteX -
       this.background.width / 2 +
       this.eraser.width / 2 +
       this.background.width / 70;
-    this.eraser.y = this.paletteY;
+    this.eraserY = this.paletteY;
+    this.eraser.x = this.eraserX;
+    this.eraser.y = this.eraserY;
     this.eraser.interactive = true;
     this.eraser.on("pointertap", this.choiceEraser, this);
     this.addChild(this.eraser);
@@ -457,5 +470,50 @@ export default class Palette extends Pixi.Container {
 
   public getColor() {
     return this.colors[this.selectedIndex];
+  }
+
+  public async hide() {
+    if (this.palette && this.background && this.eraser) {
+      this.paletteShow = false;
+      if (!this.paletteShow) {
+        if (!this.isPaletteMoving) {
+          this.togglePalette(false);
+        }
+      }
+    }
+  }
+
+  public async show() {
+    if (this.palette && this.background && this.eraser) {
+      this.paletteShow = true;
+      this.togglePalette(true);
+    }
+  }
+
+  private togglePalette(enable: boolean) {
+    if (this.palette && this.background && this.eraser) {
+      let travelDistance;
+      if (enable) {
+        travelDistance = 0;
+      } else {
+        travelDistance = 100;
+      }
+      this.isPaletteMoving = true;
+      gsap.to(this.palette.position, {
+        y: this.paletteY + travelDistance,
+        duration: 0.3,
+        onComplete: () => {
+          this.isPaletteMoving = false;
+        },
+      });
+      gsap.to(this.background.position, {
+        y: this.backgroundY + travelDistance,
+        duration: 0.3,
+      });
+      gsap.to(this.eraser.position, {
+        y: this.eraserY + travelDistance,
+        duration: 0.3,
+      });
+    }
   }
 }

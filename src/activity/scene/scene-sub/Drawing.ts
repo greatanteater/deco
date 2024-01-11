@@ -470,6 +470,16 @@ export default class Drawing extends Pixi.Container {
           };
           board.moveTo(this.prevX, this.prevY);
           board.lineTo(adjustedLocalPoint.x, adjustedLocalPoint.y);
+
+          const distance = Math.sqrt(
+            Math.pow(adjustedLocalPoint.x - this.prevX, 2) +
+              Math.pow(adjustedLocalPoint.y - this.prevY, 2)
+          );
+  
+          if (distance >= 0.6) {
+            this.scene.palette?.hide();
+          }
+          
           this.prevX = adjustedLocalPoint.x;
           this.prevY = adjustedLocalPoint.y;
         }
@@ -477,10 +487,11 @@ export default class Drawing extends Pixi.Container {
     }
   }
 
-  protected onPointerUp(e: Pixi.FederatedPointerEvent) {
+  protected onPointerUp() {
     this.down = false;
     this.erase = !this.erase;
     this.drawTarget = "";
+    this.scene.palette?.show();
   }
 
   private async setFacesPosition(direction: string) {
