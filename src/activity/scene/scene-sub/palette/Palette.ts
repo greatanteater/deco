@@ -339,9 +339,15 @@ export default class Palette extends Pixi.Container {
       this.drag.start.x = e.globalX - this.x - this.palette.x;
       this.drag.dragging = true;
 
-      const clickedSprite = this.palette.children.find((child) =>
-        child.getBounds().contains(e.globalX, e.globalY)
-      ) as Pixi.Sprite;
+      const clickedSprite = this.palette.children.find((child) => {
+        const bounds = child.getBounds();
+        const padding = (this.pencilWidth - bounds.width) / 2;
+        bounds.x -= padding;
+        bounds.y -= padding;
+        bounds.width += padding * 2;
+        bounds.height += padding * 2;
+        return bounds.contains(e.globalX, e.globalY);
+      }) as Pixi.Sprite;
 
       if (this.colorRectGroups.leftGroup.includes(clickedSprite)) {
         const leftGroupFirstX = this.colorRectGroups.leftGroup[0].x;
