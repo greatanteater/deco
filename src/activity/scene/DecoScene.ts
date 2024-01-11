@@ -37,7 +37,6 @@ export default class DecoScene extends Pixi.Container {
     this.runDrawing();
     this.runPalette();
     this.runSticker();
-    // this.setSpine();
   }
 
   private async fadeIn() {
@@ -82,21 +81,6 @@ export default class DecoScene extends Pixi.Container {
     });
     this.addChild(this.backButtonSprite);
   }
-
-  // private setSpine() {
-  //   Pixi.Assets.load("spine/merge/json/01.json").then((resource) => {
-  //     const spine = new Spine(resource.spineData);
-
-  //     if (spine.state.hasAnimation("animationName")) {
-  //       spine.state.setAnimation(0, "animationName", true);
-  //       spine.state.timeScale = 0.1;
-  //       spine.autoUpdate = true;
-  //     }
-  //     this.addChild(spine);
-  //     spine.x = 650;
-  //     spine.y = 390;
-  //   });
-  // }
 
   private destroyBackground() {
     if (this.backgroundSprite) {

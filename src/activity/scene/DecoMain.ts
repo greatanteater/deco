@@ -1,10 +1,11 @@
 import * as Pixi from "pixi.js";
 import * as PixiSound from "@pixi/sound";
+import { Spine } from "pixi-spine";
 import Setting from "../base/Setting";
 import { wait } from "../util/Util";
 import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
-import { getAssets } from './data/Resource';
+import { getAssets } from "./data/Resource";
 
 export default class DecoMain extends Pixi.Container {
   private sceneName = "main";
@@ -13,6 +14,7 @@ export default class DecoMain extends Pixi.Container {
   private backgroundSprite: Pixi.Sprite | null = null;
   private mirrorSprite: Pixi.Sprite | null = null;
   private charSprites: Pixi.Sprite[] = [];
+  private charSpines: Spine[] = [];
   private fxaaFilter: Pixi.Filter | null = null;
   private startSound: PixiSound.Sound | null = null;
 
@@ -23,9 +25,9 @@ export default class DecoMain extends Pixi.Container {
     this.runScene();
   }
 
-  private runScene() {
+  private async runScene() {
     this.setBackground();
-    this.setChars();
+    await this.setChars();
     this.setSound();
   }
 
@@ -48,39 +50,48 @@ export default class DecoMain extends Pixi.Container {
     this.addChild(this.mirrorSprite);
   }
 
-  private setChars() {
-    this.charSprites = [];
-
+  private async setChars() {
+    this.charSpines = [];
+  
     const charData = [
       {
         position: { x: 300, y: 400 },
         charNumber: 0,
+        jsonPath: "spine/main/json/main1_root/a_root.json",
+        animationName: "00",
       },
       {
         position: { x: 1000, y: 400 },
         charNumber: 1,
+        jsonPath: "spine/main/json/main2_root/main2_root.json",
+        animationName: "00",
       },
     ];
-
-    for (const { position, charNumber } of charData) {
-      const sprite = Pixi.Sprite.from(this.imageAssets.character[charNumber].path);
-
-      sprite.width = 300;
-      sprite.height = 400;
-      sprite.anchor.set(0.5);
-      sprite.position.set(position.x, position.y);
-      sprite.eventMode = "static";
-      sprite.cursor = "pointer";
-      sprite.on("pointerdown", async () => {
+  
+    // 모든 스파인 데이터를 동시에 로드
+    const resources = await Promise.all(
+      charData.map(({ jsonPath }) => Pixi.Assets.load(jsonPath))
+    );
+  
+    for (let i = 0; i < resources.length; i++) {
+      const resource = resources[i];
+      const { position, charNumber, animationName } = charData[i];
+      const spine = new Spine(resource.spineData);
+      spine.state.setAnimation(0, animationName, true);
+      spine.x = position.x;
+      spine.y = position.y;
+      spine.interactive = true;
+      spine.cursor = "pointer";
+      spine.on("pointerdown", async () => {
         await this.zoomIn();
         currentView.set("scene");
         characterNumber.set(charNumber);
       });
-
-      this.addChild(sprite);
-      this.charSprites.push(sprite);
+  
+      this.addChild(spine);
+      this.charSpines.push(spine);
     }
-  }
+  }  
 
   private async zoomIn() {
     // this.fxaaFilter = new Pixi.FXAAFilter();
@@ -104,10 +115,17 @@ export default class DecoMain extends Pixi.Container {
   }
 
   private destroyChar() {
-    for (const sprite of this.charSprites) {
-      sprite.destroy();
+    if (this.charSpines) {
+      for (const spine of this.charSpines) {
+        Pixi.utils.clearTextureCache();
+        spine.off("pointerdown");
+        this.removeChild(spine);
+        spine.destroy({ children: true, baseTexture: true });
+      }
+      Pixi.Assets.unload("spine/main/json/main1_root/a_root.json");
+      Pixi.Assets.unload("spine/main/json/main2_root/main2_root.json");
+      this.charSpines = [];
     }
-    this.charSprites = [];
   }
 
   private destroyFilter() {
