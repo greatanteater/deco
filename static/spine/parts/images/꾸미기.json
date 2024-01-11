@@ -1,0 +1,49 @@
+{ "skeleton": { "images": "C:/Users/admin/Desktop/images/" },
+"PhotoshopToSpine": { "scale": 1, "padding": 1, "trim": true },
+"bones": [
+	{ "name": "root" }
+],
+"slots": [
+	{ "name": "shirts", "bone": "root", "attachment": "shirts" },
+	{ "name": "hair", "bone": "root", "attachment": "hair" },
+	{ "name": "head", "bone": "root", "attachment": "head" },
+	{ "name": "eye2_l", "bone": "root", "attachment": "eye2_l" },
+	{ "name": "eye2_r", "bone": "root", "attachment": "eye2_r" },
+	{ "name": "m", "bone": "root", "attachment": "m" },
+	{ "name": "nose", "bone": "root", "attachment": "nose" },
+	{ "name": "eye1_r", "bone": "root", "attachment": "eye1_r" },
+	{ "name": "eye1_l", "bone": "root", "attachment": "eye1_l" }
+],
+"skins": {
+	"default": {
+		"shirts": {
+			"shirts": { "x": 960.5, "y": -903.5, "width": 377, "height": 275 }
+		},
+		"hair": {
+			"hair": { "x": 960, "y": -468, "width": 802, "height": 618 }
+		},
+		"head": {
+			"head": { "x": 960, "y": -559, "width": 400, "height": 492 }
+		},
+		"eye2_l": {
+			"eye2_l": { "x": 844, "y": -510.5, "width": 112, "height": 111 }
+		},
+		"eye2_r": {
+			"eye2_r": { "x": 1076.5, "y": -510.5, "width": 111, "height": 111 }
+		},
+		"m": {
+			"m": { "x": 960, "y": -687.5, "width": 144, "height": 39 }
+		},
+		"nose": {
+			"nose": { "x": 960, "y": -590, "width": 62, "height": 76 }
+		},
+		"eye1_r": {
+			"eye1_r": { "x": 1090, "y": -501, "width": 68, "height": 68 }
+		},
+		"eye1_l": {
+			"eye1_l": { "x": 857, "y": -501, "width": 68, "height": 68 }
+		}
+	}
+},
+"animations": { "animation": {} }
+}

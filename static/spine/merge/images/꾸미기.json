@@ -1,0 +1,17 @@
+{ "skeleton": { "images": "C:/Users/admin/Desktop/images/" },
+"PhotoshopToSpine": { "scale": 1, "padding": 1, "trim": true },
+"bones": [
+	{ "name": "root" }
+],
+"slots": [
+	{ "name": "eye1_l", "bone": "root", "attachment": "eye1_l" }
+],
+"skins": {
+	"default": {
+		"eye1_l": {
+			"eye1_l": { "x": 960, "y": -600, "width": 802, "height": 882 }
+		}
+	}
+},
+"animations": { "animation": {} }
+}

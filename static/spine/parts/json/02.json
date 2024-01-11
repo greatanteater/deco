@@ -1,0 +1,63 @@
+{
+"skeleton": {
+	"hash": "jf9lLKFBa0k",
+	"spine": "4.0.56",
+	"x": -377.13,
+	"y": -338.9,
+	"width": 802,
+	"height": 882,
+	"images": "./images/",
+	"audio": "C:/Users/admin/Desktop/images"
+},
+"bones": [
+	{ "name": "root" }
+],
+"slots": [
+	{ "name": "shirts", "bone": "root", "attachment": "shirts" },
+	{ "name": "hair", "bone": "root", "attachment": "hair" },
+	{ "name": "head", "bone": "root", "attachment": "head" },
+	{ "name": "eye2_l", "bone": "root", "attachment": "eye2_l" },
+	{ "name": "eye2_r", "bone": "root", "attachment": "eye2_r" },
+	{ "name": "m", "bone": "root", "attachment": "m" },
+	{ "name": "nose", "bone": "root", "attachment": "nose" },
+	{ "name": "eye1_r", "bone": "root", "attachment": "eye1_r" },
+	{ "name": "eye1_l", "bone": "root", "attachment": "eye1_l" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"eye1_l": {
+				"eye1_l": { "x": -79.13, "y": 201.1, "width": 180, "height": 170 }
+			},
+			"eye1_r": {
+				"eye1_r": { "x": 153.87, "y": 201.1, "width": 256, "height": 226 }
+			},
+			"eye2_l": {
+				"eye2_l": { "x": -92.13, "y": 191.6, "width": 326, "height": 319 }
+			},
+			"eye2_r": {
+				"eye2_r": { "x": 140.37, "y": 191.6, "width": 395, "height": 347 }
+			},
+			"hair": {
+				"hair": { "x": 23.87, "y": 234.1, "width": 802, "height": 618 }
+			},
+			"head": {
+				"head": { "x": 23.87, "y": 143.1, "width": 400, "height": 492 }
+			},
+			"m": {
+				"m": { "x": 23.87, "y": 14.6, "width": 144, "height": 39 }
+			},
+			"nose": {
+				"nose": { "x": 23.87, "y": 112.1, "width": 62, "height": 76 }
+			},
+			"shirts": {
+				"shirts": { "x": 24.37, "y": -201.4, "width": 377, "height": 275 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {}
+}
+}

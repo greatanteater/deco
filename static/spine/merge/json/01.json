@@ -1,0 +1,31 @@
+{
+"skeleton": {
+	"hash": "+3Jx8VYofjk",
+	"spine": "4.0.56",
+	"x": -401,
+	"y": -441,
+	"width": 802,
+	"height": 882,
+	"images": "./images/",
+	"audio": "C:/Users/admin/Desktop/images"
+},
+"bones": [
+	{ "name": "root" }
+],
+"slots": [
+	{ "name": "eye1_l", "bone": "root", "attachment": "eye1_l" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"eye1_l": {
+				"eye1_l": { "width": 802, "height": 882 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {}
+}
+}
