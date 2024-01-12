@@ -26,8 +26,9 @@ export default class DecoMain extends Pixi.Container {
   }
 
   private async runScene() {
+    await this.load();
     this.setBackground();
-    await this.setChars();
+    this.setSpine();
     this.setSound();
   }
 
@@ -50,9 +51,9 @@ export default class DecoMain extends Pixi.Container {
     this.addChild(this.mirrorSprite);
   }
 
-  private async setChars() {
+  private async load() {
     this.charSpines = [];
-  
+
     const charData = [
       {
         position: { x: 300, y: 400 },
@@ -67,12 +68,12 @@ export default class DecoMain extends Pixi.Container {
         animationName: "00",
       },
     ];
-  
+
     // 모든 스파인 데이터를 동시에 로드
     const resources = await Promise.all(
       charData.map(({ jsonPath }) => Pixi.Assets.load(jsonPath))
     );
-  
+
     for (let i = 0; i < resources.length; i++) {
       const resource = resources[i];
       const { position, charNumber, animationName } = charData[i];
@@ -87,11 +88,17 @@ export default class DecoMain extends Pixi.Container {
         currentView.set("scene");
         characterNumber.set(charNumber);
       });
-  
+
       this.addChild(spine);
       this.charSpines.push(spine);
     }
-  }  
+  }
+
+  private setSpine() {
+    this.charSpines.forEach((spine) => {
+      this.addChild(spine);
+    });
+  }
 
   private async zoomIn() {
     // this.fxaaFilter = new Pixi.FXAAFilter();
