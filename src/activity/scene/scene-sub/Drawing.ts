@@ -174,8 +174,12 @@ export default class Drawing extends Pixi.Container {
             this.displacementFilter[this.charNumber],
             this.filter,
           ];
-          this.eyes[this.charNumber].left.wrapperSprite.filters = [this.displacementFilter[this.charNumber]];
-          this.eyes[this.charNumber].right.wrapperSprite.filters = [this.displacementFilter[this.charNumber]];
+          this.eyes[this.charNumber].left.wrapperSprite.filters = [
+            this.displacementFilter[this.charNumber],
+          ];
+          this.eyes[this.charNumber].right.wrapperSprite.filters = [
+            this.displacementFilter[this.charNumber],
+          ];
           break;
       }
     }
@@ -479,11 +483,11 @@ export default class Drawing extends Pixi.Container {
             Math.pow(adjustedLocalPoint.x - this.prevX, 2) +
               Math.pow(adjustedLocalPoint.y - this.prevY, 2)
           );
-  
+
           if (distance >= 0.6) {
             this.scene.palette?.hide();
           }
-          
+
           this.prevX = adjustedLocalPoint.x;
           this.prevY = adjustedLocalPoint.y;
         }
@@ -634,7 +638,10 @@ export default class Drawing extends Pixi.Container {
       };
       eyes.left.wrapperSprite.width = 100;
       eyes.left.wrapperSprite.height = 100;
-      eyes.left.wrapperSprite.position.set(eyes.left.position.x, eyes.left.position.y);
+      eyes.left.wrapperSprite.position.set(
+        eyes.left.position.x,
+        eyes.left.position.y
+      );
       eyes.left.wrapperSprite.anchor.set(0.5);
       eyes.left.sprite.width = 100;
       eyes.left.sprite.height = 100;
@@ -642,7 +649,10 @@ export default class Drawing extends Pixi.Container {
       eyes.left.sprite.anchor.set(0.5);
       eyes.right.wrapperSprite.width = 100;
       eyes.right.wrapperSprite.height = 100;
-      eyes.right.wrapperSprite.position.set(eyes.right.position.x, eyes.right.position.y);
+      eyes.right.wrapperSprite.position.set(
+        eyes.right.position.x,
+        eyes.right.position.y
+      );
       eyes.right.wrapperSprite.anchor.set(0.5);
       eyes.right.sprite.width = 100;
       eyes.right.sprite.height = 100;
@@ -656,21 +666,10 @@ export default class Drawing extends Pixi.Container {
       this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
       this.faceContainers[i].container.addChild(eyes.left.sprite);
       this.faceContainers[i].container.addChild(eyes.right.sprite);
-      // const eyeDisplacement = Pixi.Sprite.from(
-      //   'image/drawing/map1.jpg'
-      // );
-      // eyeDisplacement.width = 500;
-      // eyeDisplacement.height = 500;
-      // eyeDisplacement.anchor.set(0.5);
-      // eyeDisplacement.scale.set(0.5);
-      // eyeDisplacement.position.set(650, 390);
-      // eyeDisplacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
-      // this.featuresMotionFilter[i] = new Pixi.DisplacementFilter(
-      //   eyeDisplacement
-      // );
-      eyes.left.wrapperSprite.filters = [this.displacementFilter[i]];
       eyes.left.sprite.filters = [this.featuresMotionFilter[i]];
       eyes.right.sprite.filters = [this.featuresMotionFilter[i]];
+      this.featuresMotionFilter[this.charNumber].scale.x = 0;
+      this.featuresMotionFilter[this.charNumber].scale.y = 0;
     }
   }
 
