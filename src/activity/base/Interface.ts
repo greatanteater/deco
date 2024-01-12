@@ -46,22 +46,27 @@ export interface Sticker {
   mouth: Mouth;
 }
 
-export interface Eyes {
-  left: Eye;
-  right: Eye;
+export interface DrawingEyes {
+  left: DrawingEye;
+  right: DrawingEye;
 }
-export interface Eye {
+export interface DrawingEye {
   sprite: Pixi.Sprite;
   wrapperSprite: Pixi.Sprite;
   position: Position;
 }
 
+export interface Eye {
+  sprite: Pixi.Sprite;
+  position: Position;
+}
+
 export interface Nose {
-  spine: Spine;
+  sprite: Pixi.Sprite;
   position: Position;
 }
 
 export interface Mouth {
-  spine: Spine;
+  sprite: Pixi.Sprite;
   position: Position;
 }

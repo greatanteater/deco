@@ -34,7 +34,7 @@ export default class Drawing extends Pixi.Container {
   private faceY = 0;
   private faceContainers: Interface.FaceContainer[] = [];
   private drawTarget: string = "";
-  private eyes: Interface.Eyes[] = [];
+  private eyes: Interface.DrawingEyes[] = [];
   private nose: Interface.Nose[] = [];
   private mouth: Interface.Mouth[] = [];
   private faceForward = false;
@@ -616,7 +616,7 @@ export default class Drawing extends Pixi.Container {
 
   private faceFeatures() {
     for (let i = 0; i < 4; i++) {
-      const eyes: Interface.Eyes = {
+      const eyes: Interface.DrawingEyes = {
         left: {
           sprite: new Pixi.Sprite(
             Pixi.Texture.from(this.imageAssets.eye[i].path)
