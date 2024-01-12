@@ -21,18 +21,19 @@ export default class Sticker extends Pixi.Container {
   private scene: DecoScene;
   private currentTargetX = 0;
   private currentTargetY = 0;
+  private kind = "";
 
-  constructor (scene: DecoScene) {
+  constructor(scene: DecoScene) {
     super();
     this.imageAssets = getAssets(this.sceneName).image;
     this.scene = scene;
     this.runScene();
-    
   }
 
   private async runScene() {
     await this.setStickerHive();
     this.setPositonStickers();
+    this.setDragAndDrop();
   }
 
   private async setStickerHive() {
@@ -45,32 +46,31 @@ export default class Sticker extends Pixi.Container {
     this.addChild(this.stickerHive);
 
     const sticker: Interface.Sticker = {
-      eyes: [],
-      noses: [],
-      mouths: [],
+      eye: [],
+      nose: [],
+      mouth: [],
     };
 
     const assets = ["eye", "nose", "mouth"];
     for (const asset of assets) {
       const assetArray = this.imageAssets[asset];
       for (let i = 0; i < 4; i++) {
-        const imgLoad = await Pixi.Assets.load(
-          assetArray[i].path
-        );
+        const imgLoad = await Pixi.Assets.load(assetArray[i].path);
         const sprite = Pixi.Sprite.from(imgLoad);
         sprite.width = 100;
         sprite.height = 100;
         sprite.anchor.set(0.5);
-        sprite.position.set(2000, 0)
+        sprite.position.set(2000, 0);
         if (asset === "eye") {
-          sticker.eyes.push({ sprite: sprite });
+          sticker.eye.push({ sprite: sprite });
         } else if (asset === "nose") {
-          sticker.noses.push({ sprite: sprite });
+          sticker.nose.push({ sprite: sprite });
         } else if (asset === "mouth") {
-          sticker.mouths.push({ sprite: sprite });
+          sticker.mouth.push({ sprite: sprite });
         }
         this.addChild(sprite);
-        this.setDragAndDrop(sprite);
+        sprite.eventMode = "static";
+        sprite.cursor = "pointer";
       }
     }
 
@@ -86,43 +86,74 @@ export default class Sticker extends Pixi.Container {
 
   private setPositonStickers() {
     if (this.stickers) {
-      this.shuffleArray(this.stickers.eyes);
-      this.shuffleArray(this.stickers.noses);
-      this.shuffleArray(this.stickers.mouths);
-      if (this.stickers.eyes[0]) {
-        this.stickers.eyes[0].sprite.position.set(1225, 150);
+      this.shuffleArray(this.stickers.eye);
+      this.shuffleArray(this.stickers.nose);
+      this.shuffleArray(this.stickers.mouth);
+      if (this.stickers.eye[0]) {
+        this.stickers.eye[0].sprite.position.set(1225, 150);
       }
-      if (this.stickers.noses[0]) {
-        this.stickers.noses[0].sprite.position.set(1225, 350);
+      if (this.stickers.nose[0]) {
+        this.stickers.nose[0].sprite.position.set(1225, 350);
       }
-      if (this.stickers.mouths[0]) {
-        this.stickers.mouths[0].sprite.position.set(1225, 550);
+      if (this.stickers.mouth[0]) {
+        this.stickers.mouth[0].sprite.position.set(1225, 550);
       }
     }
   }
 
-  private setDragAndDrop(sprite: Pixi.Sprite) {
-    sprite.eventMode = "static";
-    sprite.cursor = "pointer";
+  private changePositonStickers(feature: string, sprite: Pixi.Sprite) {
+    if (this.stickers) {
+      console.log("매우 개빡치네");
+      console.log(this.stickers[feature]);
+      const index = this.stickers[feature].findIndex(
+        (s) => s.sprite === sprite
+      );
+      let removedSprite;
+      if (index !== -1) {
+        removedSprite = this.stickers[feature].splice(index, 1)[0];
+      }
+      this.shuffleArray(this.stickers[feature]);
+      if (removedSprite) {
+        this.stickers[feature].push(removedSprite);
+      }
 
-    sprite.on("pointerdown", this.onDragStart, this);
+      const positionY = sprite.y;
+      this.stickers[feature].forEach((sticker, i) => {
+        if (i === 0) {
+          sticker.sprite.position.set(1225, positionY);
+        } else {
+          sticker.sprite.position.set(2000, positionY)
+        }
+      });
+    }
+  }
+
+  private setDragAndDrop() {
+    this.eventMode = "static";
+    this.on("pointerdown", this.onDragStart, this);
     this.scene.on("pointerup", this.onDragEnd, this);
     this.scene.on("pointermove", this.onDragMove, this);
   }
 
   private onDragStart(e: Pixi.FederatedPointerEvent) {
     this.dragging = true;
-    this.draggingSprite = e.currentTarget as Pixi.Sprite;
-    this.currentTargetX = this.draggingSprite.x;
-    this.currentTargetY = this.draggingSprite.y;
+
+    this.draggingSprite = e.target as Pixi.Sprite;
+
+    if (this.draggingSprite.y === 150) {
+      this.kind = "eye";
+    } else if (this.draggingSprite.y === 350) {
+      this.kind = "nose";
+    } else {
+      this.kind = "mouth";
+    }
   }
 
   private onDragEnd() {
     this.dragging = false;
 
     if (this.draggingSprite) {
-      this.draggingSprite.x = this.currentTargetX;
-      this.draggingSprite.y = this.currentTargetY;
+      this.changePositonStickers(this.kind, this.draggingSprite);
     }
   }
 
@@ -153,13 +184,13 @@ export default class Sticker extends Pixi.Container {
     }
 
     if (this.stickers) {
-      for (let eye of this.stickers.eyes) {
+      for (let eye of this.stickers.eye) {
         this.removeChild(eye.sprite);
       }
-      for (let nose of this.stickers.noses) {
+      for (let nose of this.stickers.nose) {
         this.removeChild(nose.sprite);
       }
-      for (let mouth of this.stickers.mouths) {
+      for (let mouth of this.stickers.mouth) {
         this.removeChild(mouth.sprite);
       }
     }
@@ -184,13 +215,13 @@ export default class Sticker extends Pixi.Container {
 
   private destroyDragAndDrop() {
     if (this.stickers) {
-      this.stickers.eyes.forEach((eye) => {
+      this.stickers.eye.forEach((eye) => {
         eye.sprite.off("pointerdown", this.onDragStart, this);
       });
-      this.stickers.noses.forEach((nose) => {
+      this.stickers.nose.forEach((nose) => {
         nose.sprite.off("pointerdown", this.onDragStart, this);
       });
-      this.stickers.mouths.forEach((mouth) => {
+      this.stickers.mouth.forEach((mouth) => {
         mouth.sprite.off("pointerdown", this.onDragStart, this);
       });
     }

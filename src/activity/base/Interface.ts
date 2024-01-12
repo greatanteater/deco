@@ -41,9 +41,10 @@ export interface FaceContainer {
 }
 
 export interface Sticker {
-  eyes: Eye[];
-  noses: Nose[];
-  mouths: Mouth[];
+  [key: string]: Eye[] | Nose[] | Mouth[];
+  eye: Eye[];
+  nose: Nose[];
+  mouth: Mouth[];
 }
 
 export interface DrawingEyes {

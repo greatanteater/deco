@@ -342,7 +342,6 @@ export default class Drawing extends Pixi.Container {
       const faceCoordinates = Coordinate.faceCoordinates[0].coordinates;
       const facePoints = faceCoordinates.flatMap(({ x, y }) => [x, y]);
       graphic.hitArea = new Pixi.Polygon(facePoints);
-      graphic.interactive = true;
       graphic.eventMode = "static";
       graphic.endFill();
       graphic.filters = [this.filter];
@@ -368,7 +367,6 @@ export default class Drawing extends Pixi.Container {
       const hairCoordinates = Coordinate.hairCoordinates[0].coordinates;
       const hairPoints = hairCoordinates.flatMap(({ x, y }) => [x, y]);
       hairGraphic.hitArea = new Pixi.Polygon(hairPoints);
-      hairGraphic.interactive = true;
       hairGraphic.eventMode = "static";
       hairGraphic.endFill();
       hairGraphic.filters = [this.filter];
