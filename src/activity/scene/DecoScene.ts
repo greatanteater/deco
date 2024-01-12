@@ -22,7 +22,7 @@ export default class DecoScene extends Pixi.Container {
   constructor() {
     super();
     this.imageAssets = getAssets(this.sceneName).image;
-    this.interactive = true;
+    this.eventMode = "static";
     this.initialize();
   }
 

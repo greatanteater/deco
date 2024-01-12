@@ -81,7 +81,7 @@ export default class DecoMain extends Pixi.Container {
       spine.state.setAnimation(0, animationName, true);
       spine.x = position.x;
       spine.y = position.y;
-      spine.interactive = true;
+      spine.eventMode = "static";
       spine.cursor = "pointer";
       spine.on("pointerdown", async () => {
         await this.zoomIn();

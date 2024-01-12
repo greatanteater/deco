@@ -61,6 +61,7 @@ export default class Sticker extends Pixi.Container {
         sprite.width = 100;
         sprite.height = 100;
         sprite.anchor.set(0.5);
+        sprite.position.set(2000, 0)
         if (asset === "eye") {
           sticker.eyes.push({ sprite: sprite });
         } else if (asset === "nose") {
@@ -89,19 +90,18 @@ export default class Sticker extends Pixi.Container {
       this.shuffleArray(this.stickers.noses);
       this.shuffleArray(this.stickers.mouths);
       if (this.stickers.eyes[0]) {
-        this.stickers.eyes[0].sprite.position.set(650, 0);
+        this.stickers.eyes[0].sprite.position.set(1225, 150);
       }
       if (this.stickers.noses[0]) {
-        this.stickers.noses[0].sprite.position.set(650, 0);
+        this.stickers.noses[0].sprite.position.set(1225, 350);
       }
       if (this.stickers.mouths[0]) {
-        this.stickers.mouths[0].sprite.position.set(650, 0);
+        this.stickers.mouths[0].sprite.position.set(1225, 550);
       }
     }
   }
 
   private setDragAndDrop(sprite: Pixi.Sprite) {
-    sprite.interactive = true;
     sprite.eventMode = "static";
     sprite.cursor = "pointer";
 

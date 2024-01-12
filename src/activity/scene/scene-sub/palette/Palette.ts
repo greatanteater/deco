@@ -133,7 +133,7 @@ export default class Palette extends Pixi.Container {
     // showMask.endFill();
     // this.addChild(showMask);
 
-    this.palette.interactive = true;
+    this.palette.eventMode = "static";
     this.palette.on("pointerdown", (e: Pixi.FederatedPointerEvent) =>
       this.onDragStart(e)
     );
@@ -155,7 +155,7 @@ export default class Palette extends Pixi.Container {
     this.eraserY = this.paletteY;
     this.eraser.x = this.eraserX;
     this.eraser.y = this.eraserY;
-    this.eraser.interactive = true;
+    this.eraser.eventMode = "static";
     this.eraser.on("pointertap", this.choiceEraser, this);
     this.addChild(this.eraser);
 
@@ -168,7 +168,7 @@ export default class Palette extends Pixi.Container {
       } else {
         pencil.y = 50;
       }
-      pencil.interactive = true;
+      pencil.eventMode = "static";
       // pencil.on("pointerdown", () => (this.readyToSelect = true));
       // pencil.on("pointerup", () => {
       //   this.choicePencil(i, pencil);

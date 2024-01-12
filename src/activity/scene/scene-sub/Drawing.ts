@@ -239,7 +239,7 @@ export default class Drawing extends Pixi.Container {
     graphicDraw.endFill();
     this.addChild(graphicDraw);
 
-    graphicDraw.interactive = true;
+    graphicDraw.eventMode = "static";
     this.on("pointerdown", this.drawPoint, this);
   }
 
@@ -304,7 +304,6 @@ export default class Drawing extends Pixi.Container {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
       container.position.set(-1000, this.faceY);
-      container.interactive = true;
       container.eventMode = "static";
 
       const displacement = Pixi.Sprite.from(
