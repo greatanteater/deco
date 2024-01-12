@@ -25,6 +25,7 @@ export default [
       left: 1,
       right: 1,
       eye: 4,
+      eyewrapper: 4,
       nose: 4,
       mouth: 4,
     },

@@ -162,6 +162,8 @@ export default class Drawing extends Pixi.Container {
         case "features":
           this.faces[this.charNumber].hairGraphic.filters = [this.filter];
           this.faces[this.charNumber].graphic.filters = [this.filter];
+          this.eyes[this.charNumber].left.wrapperSprite.filters = [];
+          this.eyes[this.charNumber].right.wrapperSprite.filters = [];
           break;
         case "face":
           this.faces[this.charNumber].hairGraphic.filters = [
@@ -172,6 +174,8 @@ export default class Drawing extends Pixi.Container {
             this.displacementFilter[this.charNumber],
             this.filter,
           ];
+          this.eyes[this.charNumber].left.wrapperSprite.filters = [this.displacementFilter[this.charNumber]];
+          this.eyes[this.charNumber].right.wrapperSprite.filters = [this.displacementFilter[this.charNumber]];
           break;
       }
     }
@@ -305,7 +309,7 @@ export default class Drawing extends Pixi.Container {
       displacement.width = 650;
       displacement.height = 700;
       displacement.anchor.set(0.5);
-      displacement.scale.set(0.5);
+      displacement.scale.set(1);
       displacement.position.set(center.x, center.y);
       displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
       this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
@@ -613,19 +617,33 @@ export default class Drawing extends Pixi.Container {
           sprite: new Pixi.Sprite(
             Pixi.Texture.from(this.imageAssets.eye[i].path)
           ),
+          wrapperSprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
+          ),
           position: Coordinate.faceFeaturePositions[i].eyes.left,
         },
         right: {
           sprite: new Pixi.Sprite(
             Pixi.Texture.from(this.imageAssets.eye[i].path)
           ),
+          wrapperSprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
+          ),
           position: Coordinate.faceFeaturePositions[i].eyes.right,
         },
       };
+      eyes.left.wrapperSprite.width = 100;
+      eyes.left.wrapperSprite.height = 100;
+      eyes.left.wrapperSprite.position.set(eyes.left.position.x, eyes.left.position.y);
+      eyes.left.wrapperSprite.anchor.set(0.5);
       eyes.left.sprite.width = 100;
       eyes.left.sprite.height = 100;
       eyes.left.sprite.position.set(eyes.left.position.x, eyes.left.position.y);
       eyes.left.sprite.anchor.set(0.5);
+      eyes.right.wrapperSprite.width = 100;
+      eyes.right.wrapperSprite.height = 100;
+      eyes.right.wrapperSprite.position.set(eyes.right.position.x, eyes.right.position.y);
+      eyes.right.wrapperSprite.anchor.set(0.5);
       eyes.right.sprite.width = 100;
       eyes.right.sprite.height = 100;
       eyes.right.sprite.position.set(
@@ -634,8 +652,23 @@ export default class Drawing extends Pixi.Container {
       );
       eyes.right.sprite.anchor.set(0.5);
       this.eyes.push(eyes);
+      this.faceContainers[i].container.addChild(eyes.left.wrapperSprite);
+      this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
       this.faceContainers[i].container.addChild(eyes.left.sprite);
       this.faceContainers[i].container.addChild(eyes.right.sprite);
+      // const eyeDisplacement = Pixi.Sprite.from(
+      //   'image/drawing/map1.jpg'
+      // );
+      // eyeDisplacement.width = 500;
+      // eyeDisplacement.height = 500;
+      // eyeDisplacement.anchor.set(0.5);
+      // eyeDisplacement.scale.set(0.5);
+      // eyeDisplacement.position.set(650, 390);
+      // eyeDisplacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
+      // this.featuresMotionFilter[i] = new Pixi.DisplacementFilter(
+      //   eyeDisplacement
+      // );
+      eyes.left.wrapperSprite.filters = [this.displacementFilter[i]];
       eyes.left.sprite.filters = [this.featuresMotionFilter[i]];
       eyes.right.sprite.filters = [this.featuresMotionFilter[i]];
     }

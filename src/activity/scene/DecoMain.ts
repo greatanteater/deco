@@ -56,13 +56,13 @@ export default class DecoMain extends Pixi.Container {
 
     const charData = [
       {
-        position: { x: 300, y: 400 },
+        position: { x: 300, y: 500 },
         charNumber: 0,
         jsonPath: "spine/main/json/main1_root/a_root.json",
         animationName: "00",
       },
       {
-        position: { x: 1000, y: 400 },
+        position: { x: 1000, y: 500 },
         charNumber: 1,
         jsonPath: "spine/main/json/main2_root/main2_root.json",
         animationName: "00",

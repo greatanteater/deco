@@ -1,4 +1,5 @@
 import * as Pixi from "pixi.js";
+import { Spine } from "pixi-spine";
 import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
 
 export interface LoadableAsset {
@@ -51,15 +52,16 @@ export interface Eyes {
 }
 export interface Eye {
   sprite: Pixi.Sprite;
+  wrapperSprite: Pixi.Sprite;
   position: Position;
 }
 
 export interface Nose {
-  sprite: Pixi.Sprite;
+  spine: Spine;
   position: Position;
 }
 
 export interface Mouth {
-  sprite: Pixi.Sprite;
+  spine: Spine;
   position: Position;
 }

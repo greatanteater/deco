@@ -37,6 +37,8 @@ export class ImageResourcePath {
       case "background":
       case "map":
         return ".jpg";
+        case "eyemap":
+          return ".jpg";
       default:
         return ".png";
     }
