@@ -5,8 +5,24 @@ interface AssetPath {
   [key: string]: string | string[];
 }
 
+interface AssetWrapper {
+  [key: string]: AssetPath;
+}
+
+interface SceneCounts {
+  [key: string]: number;
+}
+
+interface CountWrapper{
+  [key: string]: SceneCounts;
+}
+
+interface Assets {
+  [key: string]: { path: string | string[]; count: number };
+}
+
 export class ImageResourcePath {
-  private sceneImagePaths: { [key: string]: AssetPath } = {};
+  private sceneImagePaths: AssetWrapper = {};
 
   constructor() {
     assetManifest.forEach((scene: any) => {
@@ -71,7 +87,7 @@ export class ImageResourcePath {
 }
 
 export class SoundResourcePath {
-  private sceneSoundPaths: { [key: string]: AssetPath } = {};
+  private sceneSoundPaths: AssetWrapper = {};
 
   constructor() {
     soundManifest.forEach((scene: any) => {
@@ -131,7 +147,7 @@ export class SoundResourcePath {
 }
 
 export class ImageCounter {
-  private sceneCounts: { [key: string]: { [key: string]: number } } = {};
+  private sceneCounts: CountWrapper = {};
 
   constructor() {
     assetManifest.forEach((scene: any) => {
@@ -143,13 +159,13 @@ export class ImageCounter {
     });
   }
 
-  public getImageCount(sceneName: string): { [key: string]: number } {
+  public getImageCount(sceneName: string): SceneCounts {
     return this.sceneCounts[sceneName];
   }
 }
 
 export class SoundCounter {
-  private sceneCounts: { [key: string]: { [key: string]: number } } = {};
+  private sceneCounts: CountWrapper = {};
 
   constructor() {
     soundManifest.forEach((scene: any) => {
@@ -161,7 +177,7 @@ export class SoundCounter {
     });
   }
 
-  public getSoundCount(sceneName: string): { [key: string]: number } {
+  public getSoundCount(sceneName: string): SceneCounts {
     return this.sceneCounts[sceneName];
   }
 }
@@ -186,7 +202,7 @@ export function getAssets(sceneName: string): { [key: string]: any } {
         count: imageResourceCounts[resourceType],
       };
     } else {
-      const resourceObj: { [key: number]: { path: string, count: number } } = {};
+      const resourceObj: Assets = {};
       for (let i = 0; i < imageResourceCounts[resourceType]; i++) {
         resourceObj[i] = { path: imagePaths[resourceType][i], count: 1 };
       }
@@ -201,7 +217,7 @@ export function getAssets(sceneName: string): { [key: string]: any } {
         count: soundResourceCounts[resourceType],
       };
     } else {
-      const resourceObj: { [key: number]: { path: string, count: number } } = {};
+      const resourceObj: Assets = {};
       for (let i = 0; i < soundResourceCounts[resourceType]; i++) {
         resourceObj[i] = { path: soundPaths[resourceType][i], count: 1 };
       }

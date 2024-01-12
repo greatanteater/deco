@@ -143,7 +143,7 @@ export default class Palette extends Pixi.Container {
       this.onDragMove(e)
     );
 
-    this.eraser = Pixi.Sprite.from("image/palette/eraser.png");
+    this.eraser = Pixi.Sprite.from(`${this.path}/eraser.png`);
     this.eraser.anchor.set(0.5);
     this.eraser.width = 76;
     this.eraser.height = 76;
@@ -160,7 +160,7 @@ export default class Palette extends Pixi.Container {
     this.addChild(this.eraser);
 
     for (let i = 1; i < this.colors.length; i++) {
-      const pencil = Pixi.Sprite.from(`image/palette/pencil${i}.png`);
+      const pencil = Pixi.Sprite.from(`${this.path}/pencil${i}.png`);
       pencil.anchor.set(0.5);
       pencil.x = (i - 1) * this.pencilWidth;
       if (this.selectedIndex === i) {
@@ -434,7 +434,7 @@ export default class Palette extends Pixi.Container {
     if (this.background) {
       this.background.texture.baseTexture.removeAllListeners();
       this.background.destroy();
-      Pixi.Assets.unload("image/palette/background.png");
+      Pixi.Assets.unload(`${this.path}/background.png`);
     }
 
     if (this.palette) {

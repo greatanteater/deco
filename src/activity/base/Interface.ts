@@ -41,9 +41,9 @@ export interface FaceContainer {
 }
 
 export interface Sticker {
-  eye: Eye;
-  nose: Nose;
-  mouth: Mouth;
+  eyes: Eye[];
+  noses: Nose[];
+  mouths: Mouth[];
 }
 
 export interface DrawingEyes {
@@ -58,15 +58,12 @@ export interface DrawingEye {
 
 export interface Eye {
   sprite: Pixi.Sprite;
-  position: Position;
 }
 
 export interface Nose {
   sprite: Pixi.Sprite;
-  position: Position;
 }
 
 export interface Mouth {
   sprite: Pixi.Sprite;
-  position: Position;
 }
