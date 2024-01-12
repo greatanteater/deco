@@ -1,9 +1,5 @@
 import * as Pixi from "pixi.js";
 import { gsap } from "gsap";
-import { SmoothGraphics, LINE_SCALE_MODE } from "@pixi/graphics-smooth";
-import { OutlineFilter } from "@pixi/filter-outline";
-import { getAssets } from "../../data/Resource";
-import { wait } from "../../../util/Util";
 
 export default class Palette extends Pixi.Container {
   private palette: Pixi.Container | null = null;
