@@ -57,7 +57,6 @@ export default class Drawing extends Pixi.Container {
     this.setFaceFeatures();
     this.setDisplacement();
     this.setFacesPosition("default");
-    this.setFaceForward();
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
@@ -147,7 +146,6 @@ export default class Drawing extends Pixi.Container {
   private pointerMoveDisplacementHandler(e: Pixi.FederatedPointerEvent) {
     this.isPointerOverFace(e);
     if (
-      this.isDisplacementAnimation ||
       e.clientX < 0 ||
       e.clientX > Setting.sceneWidth ||
       e.clientY < 0 ||
@@ -168,8 +166,10 @@ export default class Drawing extends Pixi.Container {
         valY = (posY / midpointY) * 17,
         featuresValX = (posX / midpointX) * 30,
         featuresValY = (posY / midpointY) * 30;
-      this.displacementFilter[this.charNumber].scale.x = valX;
-      this.displacementFilter[this.charNumber].scale.y = valY;
+      if (!this.isDisplacementAnimation) {
+        this.displacementFilter[this.charNumber].scale.x = valX;
+        this.displacementFilter[this.charNumber].scale.y = valY;
+      }
       this.featuresMotionFilter[this.charNumber].scale.x = featuresValX;
       this.featuresMotionFilter[this.charNumber].scale.y = featuresValY;
     }
@@ -450,6 +450,7 @@ export default class Drawing extends Pixi.Container {
     for (let charNumber = 0; charNumber < this.faceContainers.length; charNumber++) {
       const container = this.faceContainers[charNumber].container;
       const face = this.faces[charNumber].sprite;
+      const eye = this.eyes[charNumber];
       const position: Interface.Position = { x: 650, y: this.faceContainers[charNumber].container.height / 2 };
       const displacementLoad = await Pixi.Assets.load(
         this.imageAssets.map[charNumber].path
@@ -459,8 +460,8 @@ export default class Drawing extends Pixi.Container {
       );
       displacement.anchor.set(0.5);
       displacement.scale.set(1);
-      displacement.width = face.width;
-      displacement.height = face.height;
+      displacement.width = face.width + 20;
+      displacement.height = face.height + 20;
       displacement.position.set(position.x, position.y);
       displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
       this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
@@ -471,7 +472,16 @@ export default class Drawing extends Pixi.Container {
       );
       container.addChild(displacement);
       this.displacement.push(displacement);
+      this.displacementFilter[charNumber].scale.x = 0;
+      this.displacementFilter[charNumber].scale.y = 0;
+      this.featuresMotionFilter[charNumber].scale.x = 0;
+      this.featuresMotionFilter[charNumber].scale.y = 0;
+      eye.left.sprite.filters = [this.featuresMotionFilter[charNumber]];
+      eye.right.sprite.filters = [this.featuresMotionFilter[charNumber]];
     }
+
+    this.setFaceForward();
+    this.changeFilter("face");
   }
 
   private destroyButton() {
