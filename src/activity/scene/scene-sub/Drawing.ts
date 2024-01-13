@@ -61,7 +61,7 @@ export default class Drawing extends Pixi.Container {
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
-    
+
     // this.greatBoard();
   }
 
@@ -464,10 +464,10 @@ export default class Drawing extends Pixi.Container {
       displacement.position.set(position.x, position.y);
       displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
       this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
-          displacement
+        displacement
       );
       this.featuresMotionFilter[charNumber] = new Pixi.DisplacementFilter(
-          displacement
+        displacement
       );
       container.addChild(displacement);
       this.displacement.push(displacement);
@@ -723,11 +723,12 @@ export default class Drawing extends Pixi.Container {
 
         face.sprite.texture = Pixi.Texture.EMPTY;
         face.hairSprite.texture = Pixi.Texture.EMPTY;
-
-        Pixi.Assets.unload(this.imageAssets.face[charNumber].path);
-        Pixi.Assets.unload(this.imageAssets.hair[charNumber].path);
       }
       this.displacement[charNumber].destroy();
+
+      Pixi.Assets.unload(this.imageAssets.face[charNumber].path);
+      Pixi.Assets.unload(this.imageAssets.hair[charNumber].path);
+      Pixi.Assets.unload(this.imageAssets.map[charNumber].path);
     }
 
     this.displacementFilter = [];
