@@ -26,7 +26,6 @@ export interface Coordinate {
 }
 
 export interface Face {
-  displacement: Pixi.Sprite;
   sprite: Pixi.Sprite;
   graphic: SmoothGraphics;
   hairSprite: Pixi.Sprite;

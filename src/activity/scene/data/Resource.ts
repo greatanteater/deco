@@ -13,7 +13,7 @@ interface SceneCounts {
   [key: string]: number;
 }
 
-interface CountWrapper{
+interface CountWrapper {
   [key: string]: SceneCounts;
 }
 
@@ -53,8 +53,8 @@ export class ImageResourcePath {
       case "background":
       case "map":
         return ".jpg";
-        case "eyemap":
-          return ".jpg";
+      case "eyemap":
+        return ".jpg";
       default:
         return ".png";
     }

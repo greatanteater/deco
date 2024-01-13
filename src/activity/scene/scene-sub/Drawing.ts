@@ -27,6 +27,7 @@ export default class Drawing extends Pixi.Container {
   private leftButtonSprite: Pixi.Sprite | null = null;
   private rightButtonSprite: Pixi.Sprite | null = null;
   private faceMoving = false;
+  private displacement: Pixi.Sprite[] = [];
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private featuresMotionFilter: Pixi.DisplacementFilter[] = [];
   private filter: OutlineFilter | null = null;
@@ -53,29 +54,31 @@ export default class Drawing extends Pixi.Container {
     this.imageAssets = getAssets(this.sceneName).image;
     // await this.waitForTicks(1);
     await this.setFaces();
+    this.setFaceFeatures();
+    this.setDisplacement();
     this.setFacesPosition("default");
     this.setFaceForward();
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
-    this.setFaceFeatures();
+    
     // this.greatBoard();
   }
 
   private async waitForTicks(tickCount: number) {
     return new Promise<void>(resolve => {
-        let ticks = 0;
-        const ticker = Pixi.Ticker.shared;
-        const tickHandler = () => {
-            ticks++;
-            if (ticks >= tickCount) {
-                ticker.remove(tickHandler);
-                resolve();
-            }
-        };
-        ticker.add(tickHandler);
+      let ticks = 0;
+      const ticker = Pixi.Ticker.shared;
+      const tickHandler = () => {
+        ticks++;
+        if (ticks >= tickCount) {
+          ticker.remove(tickHandler);
+          resolve();
+        }
+      };
+      ticker.add(tickHandler);
     });
-}
+  }
 
   private setUpEventListeners() {
     this.faces.forEach((face) => {
@@ -180,6 +183,8 @@ export default class Drawing extends Pixi.Container {
           this.faces[this.charNumber].graphic.filters = [this.filter];
           this.eyes[this.charNumber].left.wrapperSprite.filters = [];
           this.eyes[this.charNumber].right.wrapperSprite.filters = [];
+          this.eyes[this.charNumber].left.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
+          this.eyes[this.charNumber].right.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
           break;
         case "face":
           this.faces[this.charNumber].hairGraphic.filters = [
@@ -196,6 +201,8 @@ export default class Drawing extends Pixi.Container {
           this.eyes[this.charNumber].right.wrapperSprite.filters = [
             this.displacementFilter[this.charNumber],
           ];
+          this.eyes[this.charNumber].left.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
+          this.eyes[this.charNumber].right.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
           break;
       }
     }
@@ -311,38 +318,14 @@ export default class Drawing extends Pixi.Container {
       },
     ];
 
-    const center = {
-      x: Setting.sceneWidth / 2,
-      y: Setting.sceneHeight / 2,
-    };
-
     this.filter = new OutlineFilter(2, 0x000000);
     for (const { position, charNumber } of faceData) {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
       container.position.set(-1000, this.faceY);
       container.eventMode = "static";
-
-      // const displacementLoad = await Pixi.Assets.load(
-      //   this.imageAssets.map[charNumber].path
-      // );
-      // const texture = Pixi.Texture.from(this.imageAssets.map[charNumber].path);
-      const displacement = Pixi.Sprite.from(
-        this.imageAssets.map[charNumber].path
-      );
-      displacement.width = 650;
-      displacement.height = 700;
-      displacement.anchor.set(0.5);
-      displacement.scale.set(1);
-      displacement.position.set(center.x, center.y);
-      displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
-      this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
-        displacement
-      );
-      this.featuresMotionFilter[charNumber] = new Pixi.DisplacementFilter(
-        displacement
-      );
-      container.addChild(displacement);
+      const faceContainer: Interface.FaceContainer = { container, charNumber };
+      this.faceContainers.push(faceContainer);
 
       const maskLoad = await Pixi.Assets.load(
         this.imageAssets.face[charNumber].path
@@ -393,7 +376,6 @@ export default class Drawing extends Pixi.Container {
       container.addChild(hairGraphic, hairSprite);
 
       const face: Interface.Face = {
-        displacement,
         sprite,
         graphic,
         hairSprite,
@@ -405,8 +387,6 @@ export default class Drawing extends Pixi.Container {
       this.faces.push(face);
 
       this.addChild(container);
-      const faceContainer: Interface.FaceContainer = { container, charNumber };
-      this.faceContainers.push(faceContainer);
     }
   }
 
@@ -462,10 +442,35 @@ export default class Drawing extends Pixi.Container {
       this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
       this.faceContainers[i].container.addChild(eyes.left.sprite);
       this.faceContainers[i].container.addChild(eyes.right.sprite);
-      eyes.left.sprite.filters = [this.featuresMotionFilter[i]];
-      eyes.right.sprite.filters = [this.featuresMotionFilter[i]];
-      this.featuresMotionFilter[this.charNumber].scale.x = 0;
-      this.featuresMotionFilter[this.charNumber].scale.y = 0;
+
+    }
+  }
+
+  private async setDisplacement() {
+    for (let charNumber = 0; charNumber < this.faceContainers.length; charNumber++) {
+      const container = this.faceContainers[charNumber].container;
+      const face = this.faces[charNumber].sprite;
+      const position: Interface.Position = { x: 650, y: this.faceContainers[charNumber].container.height / 2 };
+      const displacementLoad = await Pixi.Assets.load(
+        this.imageAssets.map[charNumber].path
+      );
+      const displacement = Pixi.Sprite.from(
+        displacementLoad
+      );
+      displacement.anchor.set(0.5);
+      displacement.scale.set(1);
+      displacement.width = face.width;
+      displacement.height = face.height;
+      displacement.position.set(position.x, position.y);
+      displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
+      this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
+          displacement
+      );
+      this.featuresMotionFilter[charNumber] = new Pixi.DisplacementFilter(
+          displacement
+      );
+      container.addChild(displacement);
+      this.displacement.push(displacement);
     }
   }
 
@@ -515,9 +520,6 @@ export default class Drawing extends Pixi.Container {
     }
 
     if (board) {
-      console.log(board);
-      console.log(sprite);
-      console.log(this.drawTarget);
       board.lineStyle({
         width: 10,
         color: this.scene.palette?.getColor(),
@@ -708,12 +710,10 @@ export default class Drawing extends Pixi.Container {
         this.displacementFilter[charNumber].destroy();
         this.featuresMotionFilter[charNumber].destroy();
 
-        container.removeChild(face.displacement);
         container.removeChild(face.graphic);
         container.removeChild(face.hairGraphic);
         this.removeChild(container);
 
-        face.displacement.destroy({ children: true, texture: true, baseTexture: true });
         face.sprite.destroy();
         face.hairSprite.destroy();
         face.graphic.filters = [];
@@ -727,6 +727,7 @@ export default class Drawing extends Pixi.Container {
         Pixi.Assets.unload(this.imageAssets.face[charNumber].path);
         Pixi.Assets.unload(this.imageAssets.hair[charNumber].path);
       }
+      this.displacement[charNumber].destroy();
     }
 
     this.displacementFilter = [];
