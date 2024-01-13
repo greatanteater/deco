@@ -7,7 +7,7 @@ import { currentView, characterNumber } from "../store/store";
 import { gsap } from "gsap";
 import Sticker from "./scene-sub/Sticker";
 import Drawing from "./scene-sub/Drawing";
-import Palette from "./scene-sub/palette/Palette";
+import Palette from "./scene-sub/Palette";
 import { getAssets } from "./data/Resource";
 
 export default class DecoScene extends Pixi.Container {

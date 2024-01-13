@@ -17,7 +17,7 @@ import { getAssets } from "../data/Resource";
 
 export default class Drawing extends Pixi.Container {
   private sceneName = "drawing";
-  private imageAssets: { [key: string]: any };
+  private imageAssets: { [key: string]: any } = {};
   private scene: DecoScene;
   private down = false;
   private erase = false;
@@ -42,7 +42,6 @@ export default class Drawing extends Pixi.Container {
 
   constructor(scene: DecoScene) {
     super();
-    this.imageAssets = getAssets(this.sceneName).image;
     this.scene = scene;
     this.initialize();
   }
@@ -51,15 +50,32 @@ export default class Drawing extends Pixi.Container {
     this.eventMode = "static";
     this.faceY = 400;
     this.drawTarget = "face";
+    this.imageAssets = getAssets(this.sceneName).image;
+    // await this.waitForTicks(1);
     await this.setFaces();
     this.setFacesPosition("default");
     this.setFaceForward();
     this.setButton();
     this.loadStore();
     this.setUpEventListeners();
-    this.faceFeatures();
+    this.setFaceFeatures();
     // this.greatBoard();
   }
+
+  private async waitForTicks(tickCount: number) {
+    return new Promise<void>(resolve => {
+        let ticks = 0;
+        const ticker = Pixi.Ticker.shared;
+        const tickHandler = () => {
+            ticks++;
+            if (ticks >= tickCount) {
+                ticker.remove(tickHandler);
+                resolve();
+            }
+        };
+        ticker.add(tickHandler);
+    });
+}
 
   private setUpEventListeners() {
     this.faces.forEach((face) => {
@@ -204,7 +220,7 @@ export default class Drawing extends Pixi.Container {
     }
   }
 
-  private resetFaceOrientation(e: Pixi.FederatedPointerEvent) {
+  private async resetFaceOrientation(e: Pixi.FederatedPointerEvent) {
     if (!this.faceForward) {
       return;
     }
@@ -300,12 +316,17 @@ export default class Drawing extends Pixi.Container {
       y: Setting.sceneHeight / 2,
     };
 
+    this.filter = new OutlineFilter(2, 0x000000);
     for (const { position, charNumber } of faceData) {
       const container = new Pixi.Container();
       container.pivot.set(Setting.sceneWidth / 2, Setting.sceneHeight / 2);
       container.position.set(-1000, this.faceY);
       container.eventMode = "static";
 
+      // const displacementLoad = await Pixi.Assets.load(
+      //   this.imageAssets.map[charNumber].path
+      // );
+      // const texture = Pixi.Texture.from(this.imageAssets.map[charNumber].path);
       const displacement = Pixi.Sprite.from(
         this.imageAssets.map[charNumber].path
       );
@@ -322,8 +343,6 @@ export default class Drawing extends Pixi.Container {
         displacement
       );
       container.addChild(displacement);
-
-      this.filter = new OutlineFilter(2, 0x000000);
 
       const maskLoad = await Pixi.Assets.load(
         this.imageAssets.face[charNumber].path
@@ -388,6 +407,77 @@ export default class Drawing extends Pixi.Container {
       this.addChild(container);
       const faceContainer: Interface.FaceContainer = { container, charNumber };
       this.faceContainers.push(faceContainer);
+    }
+  }
+
+  private setFaceFeatures() {
+    for (let i = 0; i < 4; i++) {
+      const eyes: Interface.DrawingEyes = {
+        left: {
+          sprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.imageAssets.eye[i].path)
+          ),
+          wrapperSprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
+          ),
+          position: Coordinate.faceFeaturePositions[i].eyes.left,
+        },
+        right: {
+          sprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.imageAssets.eye[i].path)
+          ),
+          wrapperSprite: new Pixi.Sprite(
+            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
+          ),
+          position: Coordinate.faceFeaturePositions[i].eyes.right,
+        },
+      };
+      eyes.left.wrapperSprite.width = 100;
+      eyes.left.wrapperSprite.height = 100;
+      eyes.left.wrapperSprite.position.set(
+        eyes.left.position.x,
+        eyes.left.position.y
+      );
+      eyes.left.wrapperSprite.anchor.set(0.5);
+      eyes.left.sprite.width = 100;
+      eyes.left.sprite.height = 100;
+      eyes.left.sprite.position.set(eyes.left.position.x, eyes.left.position.y);
+      eyes.left.sprite.anchor.set(0.5);
+      eyes.right.wrapperSprite.width = 100;
+      eyes.right.wrapperSprite.height = 100;
+      eyes.right.wrapperSprite.position.set(
+        eyes.right.position.x,
+        eyes.right.position.y
+      );
+      eyes.right.wrapperSprite.anchor.set(0.5);
+      eyes.right.sprite.width = 100;
+      eyes.right.sprite.height = 100;
+      eyes.right.sprite.position.set(
+        eyes.right.position.x,
+        eyes.right.position.y
+      );
+      eyes.right.sprite.anchor.set(0.5);
+      this.eyes.push(eyes);
+      this.faceContainers[i].container.addChild(eyes.left.wrapperSprite);
+      this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
+      this.faceContainers[i].container.addChild(eyes.left.sprite);
+      this.faceContainers[i].container.addChild(eyes.right.sprite);
+      eyes.left.sprite.filters = [this.featuresMotionFilter[i]];
+      eyes.right.sprite.filters = [this.featuresMotionFilter[i]];
+      this.featuresMotionFilter[this.charNumber].scale.x = 0;
+      this.featuresMotionFilter[this.charNumber].scale.y = 0;
+    }
+  }
+
+  private destroyButton() {
+    if (this.leftButtonSprite) {
+      this.leftButtonSprite.destroy();
+      this.leftButtonSprite = null;
+    }
+
+    if (this.rightButtonSprite) {
+      this.rightButtonSprite.destroy();
+      this.rightButtonSprite = null;
     }
   }
 
@@ -478,7 +568,7 @@ export default class Drawing extends Pixi.Container {
 
           const distance = Math.sqrt(
             Math.pow(adjustedLocalPoint.x - this.prevX, 2) +
-              Math.pow(adjustedLocalPoint.y - this.prevY, 2)
+            Math.pow(adjustedLocalPoint.y - this.prevY, 2)
           );
 
           if (distance >= 0.6) {
@@ -611,111 +701,66 @@ export default class Drawing extends Pixi.Container {
     this.addChild(this.rightButtonSprite);
   }
 
-  private faceFeatures() {
-    for (let i = 0; i < 4; i++) {
-      const eyes: Interface.DrawingEyes = {
-        left: {
-          sprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eye[i].path)
-          ),
-          wrapperSprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
-          ),
-          position: Coordinate.faceFeaturePositions[i].eyes.left,
-        },
-        right: {
-          sprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eye[i].path)
-          ),
-          wrapperSprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
-          ),
-          position: Coordinate.faceFeaturePositions[i].eyes.right,
-        },
-      };
-      eyes.left.wrapperSprite.width = 100;
-      eyes.left.wrapperSprite.height = 100;
-      eyes.left.wrapperSprite.position.set(
-        eyes.left.position.x,
-        eyes.left.position.y
-      );
-      eyes.left.wrapperSprite.anchor.set(0.5);
-      eyes.left.sprite.width = 100;
-      eyes.left.sprite.height = 100;
-      eyes.left.sprite.position.set(eyes.left.position.x, eyes.left.position.y);
-      eyes.left.sprite.anchor.set(0.5);
-      eyes.right.wrapperSprite.width = 100;
-      eyes.right.wrapperSprite.height = 100;
-      eyes.right.wrapperSprite.position.set(
-        eyes.right.position.x,
-        eyes.right.position.y
-      );
-      eyes.right.wrapperSprite.anchor.set(0.5);
-      eyes.right.sprite.width = 100;
-      eyes.right.sprite.height = 100;
-      eyes.right.sprite.position.set(
-        eyes.right.position.x,
-        eyes.right.position.y
-      );
-      eyes.right.sprite.anchor.set(0.5);
-      this.eyes.push(eyes);
-      this.faceContainers[i].container.addChild(eyes.left.wrapperSprite);
-      this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
-      this.faceContainers[i].container.addChild(eyes.left.sprite);
-      this.faceContainers[i].container.addChild(eyes.right.sprite);
-      eyes.left.sprite.filters = [this.featuresMotionFilter[i]];
-      eyes.right.sprite.filters = [this.featuresMotionFilter[i]];
-      this.featuresMotionFilter[this.charNumber].scale.x = 0;
-      this.featuresMotionFilter[this.charNumber].scale.y = 0;
-    }
-  }
-
-  private destroyButton() {
-    if (this.leftButtonSprite) {
-      this.leftButtonSprite.destroy();
-      this.leftButtonSprite = null;
-    }
-
-    if (this.rightButtonSprite) {
-      this.rightButtonSprite.destroy();
-      this.rightButtonSprite = null;
-    }
-  }
-
   private destroyFace() {
     for (const { container, charNumber } of this.faceContainers) {
-      this.removeChild(container);
-      this.displacementFilter[charNumber].destroy();
-      this.featuresMotionFilter[charNumber].destroy();
       const face = this.faces.find((face) => face.charNumber === charNumber);
       if (face) {
-        face.displacement.destroy();
+        this.displacementFilter[charNumber].destroy();
+        this.featuresMotionFilter[charNumber].destroy();
+
+        container.removeChild(face.displacement);
+        container.removeChild(face.graphic);
+        container.removeChild(face.hairGraphic);
+        this.removeChild(container);
+
+        face.displacement.destroy({ children: true, texture: true, baseTexture: true });
         face.sprite.destroy();
-        face.graphic.destroy();
         face.hairSprite.destroy();
+        face.graphic.filters = [];
+        face.graphic.destroy();
+        face.hairGraphic.filters = [];
         face.hairGraphic.destroy();
+
+        face.sprite.texture = Pixi.Texture.EMPTY;
+        face.hairSprite.texture = Pixi.Texture.EMPTY;
+
+        Pixi.Assets.unload(this.imageAssets.face[charNumber].path);
+        Pixi.Assets.unload(this.imageAssets.hair[charNumber].path);
       }
     }
+
     this.displacementFilter = [];
+    this.featuresMotionFilter = [];
     this.faceContainers = [];
     this.faces = [];
+  }
 
-    Object.values<Interface.LoadableAsset>(this.imageAssets.face).forEach(
-      (obj) => {
-        Pixi.Assets.unload(obj.path);
-      }
-    );
-    Object.values<Interface.LoadableAsset>(this.imageAssets.hair).forEach(
-      (obj) => {
-        Pixi.Assets.unload(obj.path);
-      }
-    );
+
+  private destroyFaceFeatures() {
+    for (let i = 0; i < this.eyes.length; i++) {
+      const eyes = this.eyes[i];
+      this.faceContainers[i].container.removeChild(eyes.left.sprite);
+      this.faceContainers[i].container.removeChild(eyes.left.wrapperSprite);
+      this.faceContainers[i].container.removeChild(eyes.right.sprite);
+      this.faceContainers[i].container.removeChild(eyes.right.wrapperSprite);
+
+      eyes.left.sprite.destroy(true);
+      eyes.left.wrapperSprite.destroy(true);
+      eyes.right.sprite.destroy(true);
+      eyes.right.wrapperSprite.destroy(true);
+
+      eyes.left.sprite.filters = [];
+      eyes.right.sprite.filters = [];
+    }
+    this.eyes = [];
   }
 
   public destroy() {
     this.tearDownEventListeners();
     this.destroyButton();
+    this.destroyFaceFeatures();
     this.destroyFace();
+
     super.destroy();
   }
 }
