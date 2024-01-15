@@ -56,6 +56,10 @@ export interface DrawingEye {
   position: Position;
 }
 
+export interface DrawingNose {
+  spine: Spine | null;
+}
+
 export interface Eye {
   sprite: Pixi.Sprite;
 }

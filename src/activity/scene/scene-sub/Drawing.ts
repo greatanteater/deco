@@ -1,4 +1,5 @@
 import * as Pixi from "pixi.js";
+import { Spine } from "pixi-spine";
 import Setting from "../../base/Setting";
 import { wait } from "../../util/Util";
 import { get } from "svelte/store";
@@ -37,7 +38,7 @@ export default class Drawing extends Pixi.Container {
   private faceContainers: Interface.FaceContainer[] = [];
   private drawTarget: string = "";
   private eyes: Interface.DrawingEyes[] = [];
-  private nose: Interface.Nose[] = [];
+  private nose: Interface.DrawingNose[] = [];
   private mouth: Interface.Mouth[] = [];
   private faceForward = false;
   private isDisplacementAnimation = false;
@@ -188,11 +189,11 @@ export default class Drawing extends Pixi.Container {
 
   private changeFilter(target: string) {
     if (this.filter) {
+
       switch (target) {
         case "features":
           this.faces[this.charNumber].hairGraphic.filters = [this.filter];
           this.faces[this.charNumber].graphic.filters = [this.filter];
-          if (this.eyes[this.charNumber]) {
             this.eyes[this.charNumber].left.wrapperSprite.filters = [];
             this.eyes[this.charNumber].right.wrapperSprite.filters = [];
             this.eyes[this.charNumber].left.sprite.filters = [
@@ -201,6 +202,11 @@ export default class Drawing extends Pixi.Container {
             this.eyes[this.charNumber].right.sprite.filters = [
               this.featuresMotionFilter[this.charNumber],
             ];
+          if (this.nose[this.charNumber].spine) {
+            const nose = this.nose[this.charNumber].spine;
+            if (nose) {
+              nose.filters = [this.featuresMotionFilter[this.charNumber]]
+            }
           }
           break;
         case "face":
@@ -225,6 +231,12 @@ export default class Drawing extends Pixi.Container {
             this.eyes[this.charNumber].right.sprite.filters = [
               this.featuresMotionFilter[this.charNumber],
             ];
+          }
+          if (this.nose[this.charNumber].spine) {
+            const nose = this.nose[this.charNumber].spine;
+            if (nose) {
+              nose.filters = [this.featuresMotionFilter[this.charNumber]]
+            }
           }
           break;
       }
@@ -440,6 +452,11 @@ export default class Drawing extends Pixi.Container {
       eyes.right.sprite.position.set(-500, -500);
       eyes.right.sprite.anchor.set(0.5);
       this.eyes.push(eyes);
+
+      const nose: Interface.DrawingNose = {
+          spine: null
+      };
+      this.nose.push(nose);
     }
   }
 
@@ -535,10 +552,34 @@ export default class Drawing extends Pixi.Container {
     });
   }
 
-  public createNose(number: number, x: number, y: number) {
+  public async createNose(number: number, x: number, y: number) {
     console.log(`코 생성${number}`);
     console.log(`(${x}, ${y})`);
     console.log(`캐릭터 ${this.charNumber}`);
+  
+    const resource = await Pixi.Assets.load("spine/feature/json/deco_root.json");
+    
+    const noseSpine = new Spine(resource.spineData);
+  
+    noseSpine.x = x;
+    noseSpine.y = y;
+    noseSpine.eventMode = "static";
+    noseSpine.cursor = "pointer";
+    if (number > 2) {
+      number = 2
+    }
+    noseSpine.state.setAnimation(0, `nose${number + 1}_00`, true);
+  
+    if (this.nose[this.charNumber] && this.nose[this.charNumber].spine) {
+      const spine = this.nose[this.charNumber].spine;
+      if (spine) {
+        spine.destroy();
+      }
+    }
+  
+    this.addChild(noseSpine);
+  
+    this.nose[this.charNumber].spine = noseSpine;
   }
 
   public createMouth(number: number, x: number, y: number) {
@@ -813,23 +854,35 @@ export default class Drawing extends Pixi.Container {
   private destroyFaceFeatures() {
     for (let i = 0; i < this.eyes.length; i++) {
       const eyes = this.eyes[i];
-
+  
       eyes.left.sprite.filters = [];
       eyes.right.sprite.filters = [];
-
+  
       this.faceContainers[i].container.removeChild(eyes.left.sprite);
       this.faceContainers[i].container.removeChild(eyes.left.wrapperSprite);
       this.faceContainers[i].container.removeChild(eyes.right.sprite);
       this.faceContainers[i].container.removeChild(eyes.right.wrapperSprite);
-
+  
       eyes.left.sprite.destroy(true);
       eyes.left.wrapperSprite.destroy(true);
       eyes.right.sprite.destroy(true);
       eyes.right.wrapperSprite.destroy(true);
     }
-
+  
     this.eyes = [];
-  }
+  
+    for (let i = 0; i < this.nose.length; i++) {
+      if (this.nose[i] && this.nose[i].spine) {
+        const spine = this.nose[i].spine;
+        if (spine) {
+          this.faceContainers[i].container.removeChild(spine);
+          spine.destroy(true);
+        }
+      }
+    }
+  
+    this.nose = [];
+  }  
 
   public destroy() {
     this.tearDownEventListeners();
