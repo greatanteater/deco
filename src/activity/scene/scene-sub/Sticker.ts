@@ -163,14 +163,22 @@ export default class Sticker extends Pixi.Container {
 
   private onDragMove(e: Pixi.FederatedPointerEvent) {
     if (!this.dragging) return;
-
+  
     if (this.draggingSprite) {
       this.prevX = e.globalX - this.x;
       this.prevY = e.globalY - this.y;
-
+  
       this.draggingSprite.x = this.prevX;
       this.draggingSprite.y = this.prevY;
+  
+      if (this.scene.drawing) {
+        const hitArea = this.scene.drawing.charHitArea[this.charNumber];
+        if (hitArea.contains(this.prevX + this.draggingSprite.width / 2, this.prevY + this.draggingSprite.height / 2)) {
+          console.log("충돌감지 " + this.charNumber);
+        }
+      }
     }
+
     if (
       this.prevX < 0 ||
       this.prevX > Setting.sceneWidth ||

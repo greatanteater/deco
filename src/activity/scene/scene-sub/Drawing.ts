@@ -40,7 +40,7 @@ export default class Drawing extends Pixi.Container {
   private mouth: Interface.Mouth[] = [];
   private faceForward = false;
   private isDisplacementAnimation = false;
-  private charHitArea: Pixi.Polygon[] = [];
+  public charHitArea: Pixi.Polygon[] = [];
 
   constructor(scene: DecoScene) {
     super();
@@ -124,13 +124,13 @@ export default class Drawing extends Pixi.Container {
 
     for (let i = 0; i < characterCount; i++) {
       const charGlobalCoordinates =
-      Coordinate.charGlobalCoordinates[i].coordinates;
-    const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
-      x,
-      y,
-    ]);
-    const hitArea = new Pixi.Polygon(charGlobalPoints);
-    this.charHitArea.push(hitArea);
+        Coordinate.charGlobalCoordinates[i].coordinates;
+      const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
+        x,
+        y,
+      ]);
+      const hitArea = new Pixi.Polygon(charGlobalPoints);
+      this.charHitArea.push(hitArea);
     }
   }
 
