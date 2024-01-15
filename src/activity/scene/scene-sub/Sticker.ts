@@ -153,11 +153,12 @@ export default class Sticker extends Pixi.Container {
   }
 
   private onDragEnd() {
-    this.dragging = false;
-
-    if (this.draggingSprite) {
-      this.changePositonStickers(this.kind, this.draggingSprite);
+    if (this.dragging) {
+      if (this.draggingSprite) {
+        this.changePositonStickers(this.kind, this.draggingSprite);
+      }
     }
+    this.dragging = false;
   }
 
   private onDragMove(e: Pixi.FederatedPointerEvent) {
