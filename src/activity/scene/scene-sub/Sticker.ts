@@ -22,6 +22,7 @@ export default class Sticker extends Pixi.Container {
   private currentTargetX = 0;
   private currentTargetY = 0;
   private kind = "";
+  private positionY = 0;
 
   constructor(scene: DecoScene) {
     super();
@@ -103,8 +104,6 @@ export default class Sticker extends Pixi.Container {
 
   private changePositonStickers(feature: string, sprite: Pixi.Sprite) {
     if (this.stickers) {
-      console.log("매우 개빡치네");
-      console.log(this.stickers[feature]);
       const index = this.stickers[feature].findIndex(
         (s) => s.sprite === sprite
       );
@@ -117,12 +116,11 @@ export default class Sticker extends Pixi.Container {
         this.stickers[feature].push(removedSprite);
       }
 
-      const positionY = sprite.y;
       this.stickers[feature].forEach((sticker, i) => {
         if (i === 0) {
-          sticker.sprite.position.set(1225, positionY);
+          sticker.sprite.position.set(1225, this.positionY);
         } else {
-          sticker.sprite.position.set(2000, positionY)
+          sticker.sprite.position.set(2000, this.positionY);
         }
       });
     }
@@ -136,9 +134,14 @@ export default class Sticker extends Pixi.Container {
   }
 
   private onDragStart(e: Pixi.FederatedPointerEvent) {
+    if (!(e.target instanceof Pixi.Sprite)) {
+      console.log("너는 스티커를 제대로 선택하지 않았삼");
+      return;
+    }
     this.dragging = true;
 
     this.draggingSprite = e.target as Pixi.Sprite;
+    this.positionY = this.draggingSprite.y;
 
     if (this.draggingSprite.y === 150) {
       this.kind = "eye";
