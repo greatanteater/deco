@@ -518,14 +518,27 @@ export default class Drawing extends Pixi.Container {
     console.log(`(${localPosition.x}, ${localPosition.y})`);
     console.log(`캐릭터 ${this.charNumber}`);
   
-    // 사각형을 생성하고 설정합니다.
-    const rectangle = new Pixi.Graphics();
-    rectangle.beginFill(0x000000); // 색상을 설정합니다. 이 경우에는 흰색입니다.
-    rectangle.drawRect(localPosition.x, localPosition.y, 100, 100); // 사각형을 그립니다.
-    rectangle.endFill();
+    // 사각형의 크기를 지정합니다.
+    const size = 100;
+  
+    // 두 개의 사각형을 생성합니다.
+    const rectangle1 = new Pixi.Graphics();
+    rectangle1.beginFill(0x000000); // 색상을 설정합니다. 이 경우에는 흰색입니다.
+    rectangle1.drawRect(localPosition.x - size / 2, localPosition.y - size / 2, size, size); // 사각형을 그립니다.
+    rectangle1.endFill();
   
     // 사각형을 컨테이너에 추가합니다.
-    container.addChild(rectangle);
+    container.addChild(rectangle1);
+  
+    // x 좌표 650을 기준으로 대칭 위치에 두 번째 사각형을 생성합니다.
+    const mirrorX = 650 - (localPosition.x - 650);
+    const rectangle2 = new Pixi.Graphics();
+    rectangle2.beginFill(0x000000); // 색상을 설정합니다. 이 경우에는 흰색입니다.
+    rectangle2.drawRect(mirrorX - size / 2, localPosition.y - size / 2, size, size); // 사각형을 그립니다.
+    rectangle2.endFill();
+  
+    // 두 번째 사각형을 컨테이너에 추가합니다.
+    container.addChild(rectangle2);
   }  
 
   public createNose(number: number, x: number, y: number) {
