@@ -508,9 +508,25 @@ export default class Drawing extends Pixi.Container {
 
   public createEyes(number: number, x: number, y: number) {
     console.log(`눈탱이 생성 ${number}`);
-    console.log(`(${x}, ${y})`);
+  
+    const container = this.faceContainers[this.charNumber].container;
+  
+    // 글로벌 좌표를 로컬 좌표로 변환합니다.
+    const globalPosition = new Pixi.Point(x, y);
+    const localPosition = container.toLocal(globalPosition);
+  
+    console.log(`(${localPosition.x}, ${localPosition.y})`);
     console.log(`캐릭터 ${this.charNumber}`);
-  }
+  
+    // 사각형을 생성하고 설정합니다.
+    const rectangle = new Pixi.Graphics();
+    rectangle.beginFill(0x000000); // 색상을 설정합니다. 이 경우에는 흰색입니다.
+    rectangle.drawRect(localPosition.x, localPosition.y, 100, 100); // 사각형을 그립니다.
+    rectangle.endFill();
+  
+    // 사각형을 컨테이너에 추가합니다.
+    container.addChild(rectangle);
+  }  
 
   public createNose(number: number, x: number, y: number) {
     console.log(`코 생성${number}`);
