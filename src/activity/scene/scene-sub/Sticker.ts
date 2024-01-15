@@ -48,6 +48,8 @@ export default class Sticker extends Pixi.Container {
     this.stickerHive.position.set(1200, 300);
     this.addChild(this.stickerHive);
 
+    const characterCount = this.scene.drawing?.charCount;
+
     const sticker: Interface.Sticker = {
       eye: [],
       nose: [],
@@ -57,23 +59,25 @@ export default class Sticker extends Pixi.Container {
     const assets = ["eye", "nose", "mouth"];
     for (const asset of assets) {
       const assetArray = this.imageAssets[asset];
-      for (let i = 0; i < 4; i++) {
-        const imgLoad = await Pixi.Assets.load(assetArray[i].path);
-        const sprite = Pixi.Sprite.from(imgLoad);
-        sprite.width = 100;
-        sprite.height = 100;
-        sprite.anchor.set(0.5);
-        sprite.position.set(2000, 0);
-        if (asset === "eye") {
-          sticker.eye.push({ sprite: sprite });
-        } else if (asset === "nose") {
-          sticker.nose.push({ sprite: sprite });
-        } else if (asset === "mouth") {
-          sticker.mouth.push({ sprite: sprite });
+      if (characterCount) {
+        for (let i = 0; i < characterCount; i++) {
+          const imgLoad = await Pixi.Assets.load(assetArray[i].path);
+          const sprite = Pixi.Sprite.from(imgLoad);
+          sprite.width = 100;
+          sprite.height = 100;
+          sprite.anchor.set(0.5);
+          sprite.position.set(2000, 0);
+          if (asset === "eye") {
+            sticker.eye.push({ sprite: sprite });
+          } else if (asset === "nose") {
+            sticker.nose.push({ sprite: sprite });
+          } else if (asset === "mouth") {
+            sticker.mouth.push({ sprite: sprite });
+          }
+          this.addChild(sprite);
+          sprite.eventMode = "static";
+          sprite.cursor = "pointer";
         }
-        this.addChild(sprite);
-        sprite.eventMode = "static";
-        sprite.cursor = "pointer";
       }
     }
 

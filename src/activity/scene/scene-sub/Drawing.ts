@@ -19,6 +19,7 @@ export default class Drawing extends Pixi.Container {
   private sceneName = "drawing";
   private imageAssets: { [key: string]: any } = {};
   private scene: DecoScene;
+  public charCount = 0;
   private down = false;
   private erase = false;
   private prevX = 0;
@@ -120,9 +121,9 @@ export default class Drawing extends Pixi.Container {
     this.charNumber = get(characterNumber);
     this.imageAssets = getAssets(this.sceneName).image;
 
-    const characterCount = Object.keys(this.imageAssets.face).length;
+    this.charCount = Object.keys(this.imageAssets.face).length;
 
-    for (let i = 0; i < characterCount; i++) {
+    for (let i = 0; i < this.charCount; i++) {
       const charGlobalCoordinates =
         Coordinate.charGlobalCoordinates[i].coordinates;
       const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
@@ -148,8 +149,8 @@ export default class Drawing extends Pixi.Container {
       this.setFaceForward();
     } else {
       if (this.faceForward) {
+        this.resetFaceOrientation(e);
       }
-      this.resetFaceOrientation(e);
     }
   }
 
@@ -191,14 +192,16 @@ export default class Drawing extends Pixi.Container {
         case "features":
           this.faces[this.charNumber].hairGraphic.filters = [this.filter];
           this.faces[this.charNumber].graphic.filters = [this.filter];
-          this.eyes[this.charNumber].left.wrapperSprite.filters = [];
-          this.eyes[this.charNumber].right.wrapperSprite.filters = [];
-          this.eyes[this.charNumber].left.sprite.filters = [
-            this.featuresMotionFilter[this.charNumber],
-          ];
-          this.eyes[this.charNumber].right.sprite.filters = [
-            this.featuresMotionFilter[this.charNumber],
-          ];
+          if (this.eyes[this.charNumber]) {
+            this.eyes[this.charNumber].left.wrapperSprite.filters = [];
+            this.eyes[this.charNumber].right.wrapperSprite.filters = [];
+            this.eyes[this.charNumber].left.sprite.filters = [
+              this.featuresMotionFilter[this.charNumber],
+            ];
+            this.eyes[this.charNumber].right.sprite.filters = [
+              this.featuresMotionFilter[this.charNumber],
+            ];
+          }
           break;
         case "face":
           this.faces[this.charNumber].hairGraphic.filters = [
@@ -209,18 +212,20 @@ export default class Drawing extends Pixi.Container {
             this.displacementFilter[this.charNumber],
             this.filter,
           ];
-          this.eyes[this.charNumber].left.wrapperSprite.filters = [
-            this.displacementFilter[this.charNumber],
-          ];
-          this.eyes[this.charNumber].right.wrapperSprite.filters = [
-            this.displacementFilter[this.charNumber],
-          ];
-          this.eyes[this.charNumber].left.sprite.filters = [
-            this.featuresMotionFilter[this.charNumber],
-          ];
-          this.eyes[this.charNumber].right.sprite.filters = [
-            this.featuresMotionFilter[this.charNumber],
-          ];
+          if (this.eyes[this.charNumber]) {
+            this.eyes[this.charNumber].left.wrapperSprite.filters = [
+              this.displacementFilter[this.charNumber],
+            ];
+            this.eyes[this.charNumber].right.wrapperSprite.filters = [
+              this.displacementFilter[this.charNumber],
+            ];
+            this.eyes[this.charNumber].left.sprite.filters = [
+              this.featuresMotionFilter[this.charNumber],
+            ];
+            this.eyes[this.charNumber].right.sprite.filters = [
+              this.featuresMotionFilter[this.charNumber],
+            ];
+          }
           break;
       }
     }
@@ -233,6 +238,7 @@ export default class Drawing extends Pixi.Container {
     this.faceForward = true;
     if (this.displacementFilter[this.charNumber]) {
       this.isDisplacementAnimation = true;
+      gsap.killTweensOf(this.displacementFilter[this.charNumber].scale);
       gsap.to(this.displacementFilter[this.charNumber].scale, {
         x: 0,
         y: 0,
@@ -258,16 +264,18 @@ export default class Drawing extends Pixi.Container {
         valX = (posX / midpointX) * 30,
         valY = (posY / midpointY) * 17;
 
-      this.isDisplacementAnimation = true;
+      this.isDisplacementAnimation = true
       this.displacementFilter[this.charNumber].scale.x = 0;
       this.displacementFilter[this.charNumber].scale.y = 0;
       this.changeFilter("face");
+      gsap.killTweensOf(this.displacementFilter[this.charNumber].scale);
       gsap.to(this.displacementFilter[this.charNumber].scale, {
         x: valX,
         y: valY,
         duration: 0.2,
         onComplete: () => {
-          this.isDisplacementAnimation = false;
+          this.isDisplacementAnimation = false,
+          this.changeFilter("face");
         },
       });
     }
@@ -409,57 +417,29 @@ export default class Drawing extends Pixi.Container {
   }
 
   private setFaceFeatures() {
-    for (let i = 0; i < 4; i++) {
+    const characterCount = Object.keys(this.imageAssets.face).length;
+    for (let i = 0; i < characterCount; i++) {
       const eyes: Interface.DrawingEyes = {
         left: {
-          sprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eye[i].path)
-          ),
-          wrapperSprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
-          ),
+          sprite: new Pixi.Sprite(),
+          wrapperSprite: new Pixi.Sprite(),
           position: Coordinate.faceFeaturePositions[i].eyes.left,
         },
         right: {
-          sprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eye[i].path)
-          ),
-          wrapperSprite: new Pixi.Sprite(
-            Pixi.Texture.from(this.imageAssets.eyewrapper[i].path)
-          ),
+          sprite: new Pixi.Sprite(),
+          wrapperSprite: new Pixi.Sprite(),
           position: Coordinate.faceFeaturePositions[i].eyes.right,
         },
       };
-      eyes.left.wrapperSprite.width = 100;
-      eyes.left.wrapperSprite.height = 100;
-      eyes.left.wrapperSprite.position.set(
-        eyes.left.position.x,
-        eyes.left.position.y
-      );
+      eyes.left.wrapperSprite.position.set(-500, -500);
       eyes.left.wrapperSprite.anchor.set(0.5);
-      eyes.left.sprite.width = 100;
-      eyes.left.sprite.height = 100;
-      eyes.left.sprite.position.set(eyes.left.position.x, eyes.left.position.y);
+      eyes.left.sprite.position.set(-500, -500);
       eyes.left.sprite.anchor.set(0.5);
-      eyes.right.wrapperSprite.width = 100;
-      eyes.right.wrapperSprite.height = 100;
-      eyes.right.wrapperSprite.position.set(
-        eyes.right.position.x,
-        eyes.right.position.y
-      );
+      eyes.right.wrapperSprite.position.set(-500, -500);
       eyes.right.wrapperSprite.anchor.set(0.5);
-      eyes.right.sprite.width = 100;
-      eyes.right.sprite.height = 100;
-      eyes.right.sprite.position.set(
-        eyes.right.position.x,
-        eyes.right.position.y
-      );
+      eyes.right.sprite.position.set(-500, -500);
       eyes.right.sprite.anchor.set(0.5);
       this.eyes.push(eyes);
-      this.faceContainers[i].container.addChild(eyes.left.wrapperSprite);
-      this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
-      this.faceContainers[i].container.addChild(eyes.left.sprite);
-      this.faceContainers[i].container.addChild(eyes.right.sprite);
     }
   }
 
@@ -470,8 +450,6 @@ export default class Drawing extends Pixi.Container {
       charNumber++
     ) {
       const container = this.faceContainers[charNumber].container;
-      const face = this.faces[charNumber].sprite;
-      const eye = this.eyes[charNumber];
       const position: Interface.Position = {
         x: 650,
         y: this.faceContainers[charNumber].container.height / 2,
@@ -482,8 +460,8 @@ export default class Drawing extends Pixi.Container {
       const displacement = Pixi.Sprite.from(displacementLoad);
       displacement.anchor.set(0.5);
       displacement.scale.set(1);
-      displacement.width = face.width + 20;
-      displacement.height = face.height + 20;
+      displacement.width = container.width;
+      displacement.height = Setting.sceneHeight;
       displacement.position.set(position.x, position.y);
       displacement.texture.baseTexture.wrapMode = Pixi.WRAP_MODES.CLAMP;
       this.displacementFilter[charNumber] = new Pixi.DisplacementFilter(
@@ -498,8 +476,14 @@ export default class Drawing extends Pixi.Container {
       this.displacementFilter[charNumber].scale.y = 0;
       this.featuresMotionFilter[charNumber].scale.x = 0;
       this.featuresMotionFilter[charNumber].scale.y = 0;
-      eye.left.sprite.filters = [this.featuresMotionFilter[charNumber]];
-      eye.right.sprite.filters = [this.featuresMotionFilter[charNumber]];
+      if (this.eyes[charNumber]) {
+        this.eyes[charNumber].left.sprite.filters = [
+          this.featuresMotionFilter[charNumber],
+        ];
+        this.eyes[charNumber].right.sprite.filters = [
+          this.featuresMotionFilter[charNumber],
+        ];
+      }
     }
 
     this.setFaceForward();
@@ -508,38 +492,48 @@ export default class Drawing extends Pixi.Container {
 
   public createEyes(number: number, x: number, y: number) {
     console.log(`눈탱이 생성 ${number}`);
-  
+
     const container = this.faceContainers[this.charNumber].container;
-  
-    // 글로벌 좌표를 로컬 좌표로 변환합니다.
+
     const globalPosition = new Pixi.Point(x, y);
     const localPosition = container.toLocal(globalPosition);
-  
-    console.log(`(${localPosition.x}, ${localPosition.y})`);
-    console.log(`캐릭터 ${this.charNumber}`);
-  
-    // 사각형의 크기를 지정합니다.
+
     const size = 100;
-  
-    // 두 개의 사각형을 생성합니다.
-    const rectangle1 = new Pixi.Graphics();
-    rectangle1.beginFill(0x000000); // 색상을 설정합니다. 이 경우에는 흰색입니다.
-    rectangle1.drawRect(localPosition.x - size / 2, localPosition.y - size / 2, size, size); // 사각형을 그립니다.
-    rectangle1.endFill();
-  
-    // 사각형을 컨테이너에 추가합니다.
-    container.addChild(rectangle1);
-  
-    // x 좌표 650을 기준으로 대칭 위치에 두 번째 사각형을 생성합니다.
-    const mirrorX = 650 - (localPosition.x - 650);
-    const rectangle2 = new Pixi.Graphics();
-    rectangle2.beginFill(0x000000); // 색상을 설정합니다. 이 경우에는 흰색입니다.
-    rectangle2.drawRect(mirrorX - size / 2, localPosition.y - size / 2, size, size); // 사각형을 그립니다.
-    rectangle2.endFill();
-  
-    // 두 번째 사각형을 컨테이너에 추가합니다.
-    container.addChild(rectangle2);
-  }  
+
+    const eyes = this.eyes[this.charNumber];
+
+    eyes.left.sprite.texture = Pixi.Texture.from(
+      this.imageAssets.eye[number].path
+    );
+    eyes.left.wrapperSprite.texture = Pixi.Texture.from(
+      this.imageAssets.eyewrapper[number].path
+    );
+    eyes.right.sprite.texture = Pixi.Texture.from(
+      this.imageAssets.eye[number].path
+    );
+    eyes.right.wrapperSprite.texture = Pixi.Texture.from(
+      this.imageAssets.eyewrapper[number].path
+    );
+
+    eyes.left.position = {
+      x: Math.min(localPosition.x, 650 - (localPosition.x - 650)),
+      y: localPosition.y,
+    };
+    eyes.right.position = {
+      x: Math.max(localPosition.x, 650 - (localPosition.x - 650)),
+      y: localPosition.y,
+    };
+
+    [eyes.left, eyes.right].forEach((eye) => {
+      eye.sprite.width = eye.wrapperSprite.width = size;
+      eye.sprite.height = eye.wrapperSprite.height = size;
+      eye.sprite.position.set(eye.position.x, eye.position.y);
+      eye.wrapperSprite.position.set(eye.position.x, eye.position.y);
+
+      container.addChild(eye.wrapperSprite);
+      container.addChild(eye.sprite);
+    });
+  }
 
   public createNose(number: number, x: number, y: number) {
     console.log(`코 생성${number}`);
@@ -819,6 +813,10 @@ export default class Drawing extends Pixi.Container {
   private destroyFaceFeatures() {
     for (let i = 0; i < this.eyes.length; i++) {
       const eyes = this.eyes[i];
+
+      eyes.left.sprite.filters = [];
+      eyes.right.sprite.filters = [];
+
       this.faceContainers[i].container.removeChild(eyes.left.sprite);
       this.faceContainers[i].container.removeChild(eyes.left.wrapperSprite);
       this.faceContainers[i].container.removeChild(eyes.right.sprite);
@@ -828,10 +826,8 @@ export default class Drawing extends Pixi.Container {
       eyes.left.wrapperSprite.destroy(true);
       eyes.right.sprite.destroy(true);
       eyes.right.wrapperSprite.destroy(true);
-
-      eyes.left.sprite.filters = [];
-      eyes.right.sprite.filters = [];
     }
+
     this.eyes = [];
   }
 
