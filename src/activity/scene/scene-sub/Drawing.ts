@@ -40,6 +40,7 @@ export default class Drawing extends Pixi.Container {
   private mouth: Interface.Mouth[] = [];
   private faceForward = false;
   private isDisplacementAnimation = false;
+  private charHitArea: Pixi.Polygon[] = [];
 
   constructor(scene: DecoScene) {
     super();
@@ -48,24 +49,22 @@ export default class Drawing extends Pixi.Container {
   }
 
   private async initialize() {
+    this.loadData();
     this.eventMode = "static";
     this.faceY = 400;
     this.drawTarget = "face";
-    this.imageAssets = getAssets(this.sceneName).image;
-    // await this.waitForTicks(1);
     await this.setFaces();
     this.setFaceFeatures();
     this.setDisplacement();
     this.setFacesPosition("default");
     this.setButton();
-    this.loadStore();
     this.setUpEventListeners();
 
     // this.greatBoard();
   }
 
   private async waitForTicks(tickCount: number) {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       let ticks = 0;
       const ticker = Pixi.Ticker.shared;
       const tickHandler = () => {
@@ -117,8 +116,22 @@ export default class Drawing extends Pixi.Container {
     this.scene.off("pointermove", this.pointerMoveDisplacementHandler, this);
   }
 
-  private loadStore() {
+  private loadData() {
     this.charNumber = get(characterNumber);
+    this.imageAssets = getAssets(this.sceneName).image;
+
+    const characterCount = Object.keys(this.imageAssets.face).length;
+
+    for (let i = 0; i < characterCount; i++) {
+      const charGlobalCoordinates =
+      Coordinate.charGlobalCoordinates[i].coordinates;
+    const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
+      x,
+      y,
+    ]);
+    const hitArea = new Pixi.Polygon(charGlobalPoints);
+    this.charHitArea.push(hitArea);
+    }
   }
 
   private saveStore() {
@@ -126,15 +139,12 @@ export default class Drawing extends Pixi.Container {
   }
 
   private isPointerOverFace(e: Pixi.FederatedPointerEvent) {
-    const charGlobalCoordinates =
-      Coordinate.charGlobalCoordinates[0].coordinates;
-    const charGlobalPoints = charGlobalCoordinates.flatMap(({ x, y }) => [
-      x,
-      y,
-    ]);
-    const hitArea = new Pixi.Polygon(charGlobalPoints);
-
-    if (hitArea.contains(e.globalX - this.x, e.globalY - this.y)) {
+    if (
+      this.charHitArea[this.charNumber].contains(
+        e.globalX - this.x,
+        e.globalY - this.y
+      )
+    ) {
       this.setFaceForward();
     } else {
       if (this.faceForward) {
@@ -183,8 +193,12 @@ export default class Drawing extends Pixi.Container {
           this.faces[this.charNumber].graphic.filters = [this.filter];
           this.eyes[this.charNumber].left.wrapperSprite.filters = [];
           this.eyes[this.charNumber].right.wrapperSprite.filters = [];
-          this.eyes[this.charNumber].left.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
-          this.eyes[this.charNumber].right.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
+          this.eyes[this.charNumber].left.sprite.filters = [
+            this.featuresMotionFilter[this.charNumber],
+          ];
+          this.eyes[this.charNumber].right.sprite.filters = [
+            this.featuresMotionFilter[this.charNumber],
+          ];
           break;
         case "face":
           this.faces[this.charNumber].hairGraphic.filters = [
@@ -201,8 +215,12 @@ export default class Drawing extends Pixi.Container {
           this.eyes[this.charNumber].right.wrapperSprite.filters = [
             this.displacementFilter[this.charNumber],
           ];
-          this.eyes[this.charNumber].left.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
-          this.eyes[this.charNumber].right.sprite.filters = [this.featuresMotionFilter[this.charNumber]];
+          this.eyes[this.charNumber].left.sprite.filters = [
+            this.featuresMotionFilter[this.charNumber],
+          ];
+          this.eyes[this.charNumber].right.sprite.filters = [
+            this.featuresMotionFilter[this.charNumber],
+          ];
           break;
       }
     }
@@ -442,22 +460,26 @@ export default class Drawing extends Pixi.Container {
       this.faceContainers[i].container.addChild(eyes.right.wrapperSprite);
       this.faceContainers[i].container.addChild(eyes.left.sprite);
       this.faceContainers[i].container.addChild(eyes.right.sprite);
-
     }
   }
 
   private async setDisplacement() {
-    for (let charNumber = 0; charNumber < this.faceContainers.length; charNumber++) {
+    for (
+      let charNumber = 0;
+      charNumber < this.faceContainers.length;
+      charNumber++
+    ) {
       const container = this.faceContainers[charNumber].container;
       const face = this.faces[charNumber].sprite;
       const eye = this.eyes[charNumber];
-      const position: Interface.Position = { x: 650, y: this.faceContainers[charNumber].container.height / 2 };
+      const position: Interface.Position = {
+        x: 650,
+        y: this.faceContainers[charNumber].container.height / 2,
+      };
       const displacementLoad = await Pixi.Assets.load(
         this.imageAssets.map[charNumber].path
       );
-      const displacement = Pixi.Sprite.from(
-        displacementLoad
-      );
+      const displacement = Pixi.Sprite.from(displacementLoad);
       displacement.anchor.set(0.5);
       displacement.scale.set(1);
       displacement.width = face.width + 20;
@@ -580,7 +602,7 @@ export default class Drawing extends Pixi.Container {
 
           const distance = Math.sqrt(
             Math.pow(adjustedLocalPoint.x - this.prevX, 2) +
-            Math.pow(adjustedLocalPoint.y - this.prevY, 2)
+              Math.pow(adjustedLocalPoint.y - this.prevY, 2)
           );
 
           if (distance >= 0.6) {
@@ -746,7 +768,6 @@ export default class Drawing extends Pixi.Container {
     this.faceContainers = [];
     this.faces = [];
   }
-
 
   private destroyFaceFeatures() {
     for (let i = 0; i < this.eyes.length; i++) {
