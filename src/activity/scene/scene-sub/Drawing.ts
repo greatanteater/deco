@@ -31,7 +31,7 @@ export default class Drawing extends Pixi.Container {
   private displacementFilter: Pixi.DisplacementFilter[] = [];
   private featuresMotionFilter: Pixi.DisplacementFilter[] = [];
   private filter: OutlineFilter | null = null;
-  private charNumber = 0;
+  public charNumber = 0;
   private faceY = 0;
   private faceContainers: Interface.FaceContainer[] = [];
   private drawTarget: string = "";
@@ -504,6 +504,24 @@ export default class Drawing extends Pixi.Container {
 
     this.setFaceForward();
     this.changeFilter("face");
+  }
+
+  public createEyes(number: number, x: number, y: number) {
+    console.log(`눈탱이 생성 ${number}`);
+    console.log(`(${x}, ${y})`);
+    console.log(`캐릭터 ${this.charNumber}`);
+  }
+
+  public createNose(number: number, x: number, y: number) {
+    console.log(`코 생성${number}`);
+    console.log(`(${x}, ${y})`);
+    console.log(`캐릭터 ${this.charNumber}`);
+  }
+
+  public createMouth(number: number, x: number, y: number) {
+    console.log(`주둥아리 생성 ${number}`);
+    console.log(`(${x}, ${y})`);
+    console.log(`캐릭터 ${this.charNumber}`);
   }
 
   private destroyButton() {

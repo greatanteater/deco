@@ -13,7 +13,7 @@ export default class Sticker extends Pixi.Container {
   private imageAssets: { [key: string]: any };
   private stickerHive: Pixi.Graphics | null = null;
   private stickers: Interface.Sticker | null = null;
-  private charNumber = 0;
+  private shuffledStickers: Interface.Sticker | null = null;
   private dragging = false;
   private draggingSprite: Pixi.Sprite | null = null;
   private prevX = 0;
@@ -23,6 +23,8 @@ export default class Sticker extends Pixi.Container {
   private currentTargetY = 0;
   private kind = "";
   private positionY = 0;
+  private collisionNumber = 0;
+  private isCollision = false;
 
   constructor(scene: DecoScene) {
     super();
@@ -76,6 +78,11 @@ export default class Sticker extends Pixi.Container {
     }
 
     this.stickers = sticker;
+    this.shuffledStickers = { ...sticker };
+
+    this.shuffledStickers.eye = sticker.eye.slice();
+    this.shuffledStickers.nose = sticker.nose.slice();
+    this.shuffledStickers.mouth = sticker.mouth.slice();
   }
 
   private shuffleArray(array: any[]) {
@@ -86,37 +93,37 @@ export default class Sticker extends Pixi.Container {
   }
 
   private setPositonStickers() {
-    if (this.stickers) {
-      this.shuffleArray(this.stickers.eye);
-      this.shuffleArray(this.stickers.nose);
-      this.shuffleArray(this.stickers.mouth);
-      if (this.stickers.eye[0]) {
-        this.stickers.eye[0].sprite.position.set(1225, 150);
+    if (this.shuffledStickers) {
+      this.shuffleArray(this.shuffledStickers.eye);
+      this.shuffleArray(this.shuffledStickers.nose);
+      this.shuffleArray(this.shuffledStickers.mouth);
+      if (this.shuffledStickers.eye[0]) {
+        this.shuffledStickers.eye[0].sprite.position.set(1225, 150);
       }
-      if (this.stickers.nose[0]) {
-        this.stickers.nose[0].sprite.position.set(1225, 350);
+      if (this.shuffledStickers.nose[0]) {
+        this.shuffledStickers.nose[0].sprite.position.set(1225, 350);
       }
-      if (this.stickers.mouth[0]) {
-        this.stickers.mouth[0].sprite.position.set(1225, 550);
+      if (this.shuffledStickers.mouth[0]) {
+        this.shuffledStickers.mouth[0].sprite.position.set(1225, 550);
       }
     }
   }
 
   private changePositonStickers(feature: string, sprite: Pixi.Sprite) {
-    if (this.stickers) {
-      const index = this.stickers[feature].findIndex(
+    if (this.shuffledStickers) {
+      const index = this.shuffledStickers[feature].findIndex(
         (s) => s.sprite === sprite
       );
       let removedSprite;
       if (index !== -1) {
-        removedSprite = this.stickers[feature].splice(index, 1)[0];
+        removedSprite = this.shuffledStickers[feature].splice(index, 1)[0];
       }
-      this.shuffleArray(this.stickers[feature]);
+      this.shuffleArray(this.shuffledStickers[feature]);
       if (removedSprite) {
-        this.stickers[feature].push(removedSprite);
+        this.shuffledStickers[feature].push(removedSprite);
       }
 
-      this.stickers[feature].forEach((sticker, i) => {
+      this.shuffledStickers[feature].forEach((sticker, i) => {
         if (i === 0) {
           sticker.sprite.position.set(1225, this.positionY);
         } else {
@@ -145,17 +152,45 @@ export default class Sticker extends Pixi.Container {
 
     if (this.draggingSprite.y === 150) {
       this.kind = "eye";
+      if (this.stickers) {
+        this.collisionNumber = this.stickers.eye.findIndex(
+          (eye: Interface.Eye) => eye.sprite === this.draggingSprite
+        );
+      }
     } else if (this.draggingSprite.y === 350) {
       this.kind = "nose";
+      if (this.stickers) {
+        this.collisionNumber = this.stickers.nose.findIndex(
+          (nose: Interface.Nose) => nose.sprite === this.draggingSprite
+        );
+      }
     } else {
       this.kind = "mouth";
+      if (this.stickers) {
+        this.collisionNumber = this.stickers.mouth.findIndex(
+          (mouth: Interface.Mouth) => mouth.sprite === this.draggingSprite
+        );
+      }
     }
+    console.log(this.collisionNumber);
   }
 
-  private onDragEnd() {
+  private onDragEnd(e: Pixi.FederatedPointerEvent) {
     if (this.dragging) {
       if (this.draggingSprite) {
         this.changePositonStickers(this.kind, this.draggingSprite);
+      }
+
+      if (this.isCollision) {
+        const x = e.globalX - this.x;
+        const y = e.globalY - this.y;
+        if (this.kind === "eye") {
+          this.scene.drawing?.createEyes(this.collisionNumber, x, y);
+        } else if (this.kind === "nose") {
+          this.scene.drawing?.createNose(this.collisionNumber, x, y);
+        } else if (this.kind === "mouth") {
+          this.scene.drawing?.createMouth(this.collisionNumber, x, y);
+        }
       }
     }
     this.dragging = false;
@@ -163,18 +198,27 @@ export default class Sticker extends Pixi.Container {
 
   private onDragMove(e: Pixi.FederatedPointerEvent) {
     if (!this.dragging) return;
-  
+
     if (this.draggingSprite) {
       this.prevX = e.globalX - this.x;
       this.prevY = e.globalY - this.y;
-  
+
       this.draggingSprite.x = this.prevX;
       this.draggingSprite.y = this.prevY;
-  
+
       if (this.scene.drawing) {
-        const hitArea = this.scene.drawing.charHitArea[this.charNumber];
-        if (hitArea.contains(this.prevX + this.draggingSprite.width / 2, this.prevY + this.draggingSprite.height / 2)) {
-          console.log("충돌감지 " + this.charNumber);
+        const hitArea = this.scene.drawing.charHitArea[this.scene.drawing.charNumber];
+        if (
+          hitArea.contains(
+            this.prevX + this.draggingSprite.width / 2,
+            this.prevY + this.draggingSprite.height / 2
+          )
+        ) {
+          this.isCollision = true;
+          console.log("충돌감지");
+        } else {
+          this.isCollision = false;
+          console.log("충돌안함");
         }
       }
     }
@@ -185,7 +229,7 @@ export default class Sticker extends Pixi.Container {
       this.prevY < 0 ||
       this.prevY > Setting.sceneHeight
     ) {
-      this.onDragEnd();
+      this.onDragEnd(e);
     }
   }
 
